@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Biometric Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f9;}
+        table { border-collapse: collapse; width: 100%; background: white; margin-top: 20px;}
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #4CAF50; color: white; }
+        tr:nth-child(even){background-color: #f2f2f2;}
+        .face-img { width: 50px; height: 50px; object-fit: cover; border-radius: 50%; }
+    </style>
+</head>
+<body>
+    <h1>Tableau de Bord - Enrôlements Biométriques</h1>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Photo</th>
+                <th>Nom</th>
+                <th>Prénom</th>
+                <th>Sexe</th>
+                <th>Âge</th>
+                <th>Ville</th>
+                <th>Empreintes</th>
+                <th>Iris</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr th:each="u : ${utilisateurs}">
+                <td th:text="${u.id}"></td>
+                <td>
+                    <img th:if="${u.facePhotoBase64 != null}" th:src="${'data:image/jpeg;base64,' + u.facePhotoBase64}" class="face-img" alt="Face"/>
+                    <span th:if="${u.facePhotoBase64 == null}">N/A</span>
+                </td>
+                <td th:text="${u.nom}"></td>
+                <td th:text="${u.prenom}"></td>
+                <td th:text="${u.sexe}"></td>
+                <td th:text="${u.age}"></td>
+                <td th:text="${u.ville}"></td>
+                <td th:text="${u.empreintes.size()} + ' doigts'"></td>
+                <td th:text="${u.iris.size()} + ' iris'"></td>
+                <td th:text="${#temporals.format(u.dateCreation, 'dd/MM/yyyy HH:mm')}"></td>
+            </tr>
+        </tbody>
+    </table>
+</body>
+</html>

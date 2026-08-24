@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="lib_pp_white">#FFFFFF</color>
+    <color name="lib_pp_black">#000000</color>
+    <color name="lib_pp_info_black">#555555</color>
+    <color name="lib_pp_info_title_black">#888888</color>
+    <color name="lib_pp_btn_pressed_blue">#2942d1</color>
+</resources>

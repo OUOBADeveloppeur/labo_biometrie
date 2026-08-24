@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <color name="BASE_THEME_COLOR">#1296db</color>
+    <color name="BASE_THEME_SELECT_COLOR">#FF77A5FF</color>
+    <color name="BASE_THEME_SELECT_TRANS_COLOR">#440158BC</color>
+    <color name="BASE_WHITE">#FFFFFFFF</color>
+    <color name="BASE_BLACK">#FF000000</color>
+    <color name="BASE_GREY">#FF999999</color>
+    <color name="BASE_GREEN">#FF33ff33</color>
+    <color name="BASE_HINT">#FFEEEEEE</color>
+    <color name="BASE_BACKGROUND">#FFDDDDDD</color>
+    <color name="TRANS">#00FFFFFF</color>
+
+    <color name="UI_TEXT">#C7EFFF</color>
+    <color name="UI_MAIN">#37E5DE</color>
+    <color name="DIALOG_BG">#1AFFFFFF</color>
+
+    <color name="TOAST_LEFT">#E6214B61</color>
+    <color name="TOAST_RIGHT">#E60D5050</color>
+</resources>

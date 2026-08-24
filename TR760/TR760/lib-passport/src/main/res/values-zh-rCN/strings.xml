@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="pp_status">
+        <item>扫码</item>
+        <item>NFC读取</item>
+        <item>基本信息</item>
+        <item>照片</item>
+        <item>认证</item>
+    </string-array>
+
+    <string name="lib_pp_tip_step_1">请扫描护照上的MRZ机读码</string>
+    <string name="lib_pp_tip_step_2">请将护照靠近设备</string>
+    <string name="lib_pp_tip_step_3">正在读取基本信息，请稍后…</string>
+    <string name="lib_pp_tip_step_4">正在读取照片信息，请稍后…</string>
+    <string name="lib_pp_tip_step_5">正在进行护照认证，请稍后…</string>
+    <string name="lib_pp_tip_step_6">请扫描护照</string>
+    <string name="lib_pp_tip_parse_code_failure">解析MRZ机读码信息失败，请重新扫码</string>
+    <string name="lib_pp_tip_read_failure">读取失败，请不要在读取信息时移动护照</string>
+    <string name="lib_pp_retry_nfc">重试</string>
+    <string name="lib_pp_retry_scan_code">重新扫码</string>
+    <string name="lib_pp_return">返回</string>
+    <string name="lib_pp_auth_result_success">成功</string>
+    <string name="lib_pp_auth_result_success_1">芯片认证成功</string>
+    <string name="lib_pp_auth_result_success_2">被动认证成功</string>
+    <string name="lib_pp_auth_result_failed">失败</string>
+    <string name="lib_pp_auth_result_failed_1">护照机读码信息与芯片信息不一致</string>
+    <string name="lib_pp_auth_result_failed_2">读取照片失败</string>
+    <string name="lib_pp_info_title_type">类型</string>
+    <string name="lib_pp_info_title_country_code">国家代码</string>
+    <string name="lib_pp_info_title_passport_no">护照号码</string>
+    <string name="lib_pp_info_title_surname">姓</string>
+    <string name="lib_pp_info_title_given_name">名</string>
+    <string name="lib_pp_info_title_date_of_birth">出生日期</string>
+    <string name="lib_pp_info_title_gender">性别</string>
+    <string name="lib_pp_info_title_nationality">国籍</string>
+    <string name="lib_pp_info_title_date_of_expiry">到期日期</string>
+    <string name="lib_pp_info_title_optional_info">可选信息</string>
+    <string name="lib_pp_info_title_auth_result">认证结果</string>
+</resources>

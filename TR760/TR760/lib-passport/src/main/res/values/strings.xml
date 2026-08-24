@@ -1,0 +1,38 @@
+<resources>
+    <string-array name="pp_status">
+        <item>Scan code</item>
+        <item>NFC reading</item>
+        <item>Base Information</item>
+        <item>Photo</item>
+        <item>Authentication</item>
+    </string-array>
+
+    <string name="lib_pp_tip_step_1">Please scan the mrz code on your passport</string>
+    <string name="lib_pp_tip_step_2">Hold your Passport close to your device</string>
+    <string name="lib_pp_tip_step_3">Reading basic information, please wait…</string>
+    <string name="lib_pp_tip_step_4">Reading photo information, please wait…</string>
+    <string name="lib_pp_tip_step_5">Validating passport, please wait…</string>
+    <string name="lib_pp_tip_step_6">Please scan your passport</string>
+    <string name="lib_pp_tip_parse_code_failure">Failed to parse mrz code information, please scan the code again</string>
+    <string name="lib_pp_tip_read_failure">Reading failed, please do not move passport while reading information</string>
+    <string name="lib_pp_retry_nfc">retry</string>
+    <string name="lib_pp_retry_scan_code">rescan</string>
+    <string name="lib_pp_return">return</string>
+    <string name="lib_pp_auth_result_success">Success</string>
+    <string name="lib_pp_auth_result_success_1">Chip authentication successful</string>
+    <string name="lib_pp_auth_result_success_2">Passive authentication successful</string>
+    <string name="lib_pp_auth_result_failed">Failure</string>
+    <string name="lib_pp_auth_result_failed_1">The mrz code information does not match the chip information</string>
+    <string name="lib_pp_auth_result_failed_2">Failed to read photo</string>
+    <string name="lib_pp_info_title_type">Type</string>
+    <string name="lib_pp_info_title_country_code">Country code</string>
+    <string name="lib_pp_info_title_passport_no">Passport no.</string>
+    <string name="lib_pp_info_title_surname">Surname</string>
+    <string name="lib_pp_info_title_given_name">Given name</string>
+    <string name="lib_pp_info_title_date_of_birth">Date of birth</string>
+    <string name="lib_pp_info_title_gender">Gender</string>
+    <string name="lib_pp_info_title_nationality">Nationality</string>
+    <string name="lib_pp_info_title_date_of_expiry">Date of expiry</string>
+    <string name="lib_pp_info_title_optional_info">Optional info</string>
+    <string name="lib_pp_info_title_auth_result">Validation result</string>
+</resources>

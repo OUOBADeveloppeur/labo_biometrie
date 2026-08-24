@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:tools="http://schemas.android.com/tools"
+    xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <uses-permission android:name="android.permission.CAMERA"/>
+    <uses-feature
+        android:name="android.hardware.camera"
+        android:required="true" />
+    <uses-feature android:name="android.hardware.usb.host"/>
+    <uses-permission android:name="android.permission.USB_PERMISSION" />
+
+    <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
+
+    <uses-permission android:name="android.permission.READ_MEDIA_AUDIO" />
+    <uses-permission android:name="android.permission.READ_MEDIA_IMAGES" />
+    <uses-permission android:name="android.permission.READ_MEDIA_VIDEO" />
+    <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.WAKE_LOCK"/>
+
+    <uses-permission android:name="android.permission.NFC"/>
+
+
+    <application
+        android:name=".facex.App"
+        android:allowBackup="true"
+        android:hardwareAccelerated="true"
+        android:icon="@drawable/tr760"
+        android:label="@string/app_name"
+        android:largeHeap="true"
+        android:requestLegacyExternalStorage="true"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.AppCompat.NoActionBar"
+        android:usesCleartextTraffic="true"
+        tools:replace="android:allowBackup">
+        <meta-data
+            android:name="ScopedStorage"
+            android:value="true" />
+
+        <activity
+            android:name=".demo.MainActivity"
+            android:exported="true"
+            android:screenOrientation="portrait">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="661201b98d21b86a184df295" />
+            </intent-filter>
+        </activity>
+
+        <activity android:name=".fingerprint.Fingerprint442Activity"
+            android:screenOrientation="portrait"/>
+
+        <activity android:name=".fingerprint.MultimodalEnrollmentActivity"
+            android:screenOrientation="portrait"/>
+
+
+        <activity android:name=".fingerprint.FingerprintSearchActivity"
+            android:screenOrientation="portrait"/>
+
+        <activity android:name=".demo.IrisActivity"
+            android:screenOrientation="portrait"/>
+
+        <activity android:name=".demo.BarcodeActivity"
+            android:screenOrientation="portrait"/>
+
+        <activity android:name=".demo.PsamActivity"
+            android:screenOrientation="portrait"/>
+
+        <activity android:name=".demo.IcActivity"
+            android:screenOrientation="portrait"/>
+
+        <activity android:name=".demo.FillLightActivity"
+            android:screenOrientation="portrait"/>
+
+        <activity android:name=".demo.NfcActivity"
+            android:screenOrientation="portrait"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.nfc.action.TECH_DISCOVERED" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.nfc.action.TECH_DISCOVERED"
+                android:resource="@xml/nfc_tech_filter" />
+
+            <intent-filter>
+                <action android:name="android.nfc.action.NDEF_DISCOVERED" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.nfc.action.TAG_DISCOVERED" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </activity>
+
+        <activity android:name=".facex.FaceXMainActivity"
+            android:screenOrientation="portrait">
+        </activity>
+
+        <activity android:name=".facex.facepass.UserListActivity"
+            android:screenOrientation="portrait"/>
+        <activity android:name=".facex.facepass.ScanFaceActivity"
+            android:screenOrientation="portrait"/>
+        <activity android:name=".facex.facepass.camera.CameraActivity"
+            android:screenOrientation="portrait"/>
+
+    </application>
+
+    <!--    Android 11 use camera，AndroidManifest.xm add the code：-->
+    <queries>
+        <intent>
+            <action android:name="android.media.action.IMAGE_CAPTURE">
+
+            </action>
+        </intent>
+        <intent>
+            <action android:name="android.media.action.ACTION_VIDEO_CAPTURE">
+
+            </action>
+        </intent>
+    </queries>
+</manifest>

@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/BASE_GREY"
+    android:orientation="vertical">
+
+    <com.hf.ui.widget.EasyActionbar
+        android:id="@+id/actionbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/white" />
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <Button
+                android:id="@+id/btnMultimodal"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:gravity="center"
+                android:text="MULTIMODAL ENROLLMENT"
+                android:textSize="@dimen/t_18"
+                android:textColor="#ffffff"
+                android:backgroundTint="#ff5722"/>
+
+            <Button
+                android:id="@+id/fft"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:gravity="center"
+                android:text="442"
+                android:textSize="@dimen/t_18" />
+
+            <Button
+                android:id="@+id/fp_search"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:gravity="center"
+                android:text="Fingerprint Search"
+                android:textSize="@dimen/t_18" />
+
+            <Button
+                android:id="@+id/nfc"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:gravity="center"
+                android:text="NFC"
+                android:textSize="@dimen/t_18" />
+
+            <Button
+                android:id="@+id/iris"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:gravity="center"
+                android:text="IRIS"
+                android:textSize="@dimen/t_18" />
+
+            <Button
+                android:id="@+id/barcode"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:gravity="center"
+                android:text="BARCODE"
+                android:textSize="@dimen/t_18" />
+
+            <Button
+                android:id="@+id/mrz"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:gravity="center"
+                android:text="MRZ"
+                android:textSize="@dimen/t_18" />
+
+            <Button
+                android:id="@+id/face"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:gravity="center"
+                android:text="FACE"
+                android:textSize="@dimen/t_18" />
+
+            <Button
+                android:id="@+id/ic"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:gravity="center"
+                android:text="IC"
+                android:textSize="@dimen/t_18" />
+
+            <Button
+                android:id="@+id/psam"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:gravity="center"
+                android:text="PSAM"
+                android:textSize="@dimen/t_18" />
+
+            <Button
+                android:id="@+id/fill_light"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:gravity="center"
+                android:text="FILL LIGHT"
+                android:textSize="@dimen/t_18" />
+
+            <Button
+                android:id="@+id/usb_a"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:gravity="center"
+                android:text="USB A"
+                android:textSize="@dimen/t_18" />
+
+            <Button
+                android:id="@+id/palm"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:gravity="center"
+                android:text="PALM"
+                android:textSize="@dimen/t_18" />
+        </LinearLayout>
+
+
+    </androidx.core.widget.NestedScrollView>
+
+</LinearLayout>

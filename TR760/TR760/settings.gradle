@@ -1,0 +1,6 @@
+include ':ui'
+include ':TR760'
+include ':lib-eyecooliris-uvc'
+include ':lib-passport'
+include ':palm'
+include ':common'

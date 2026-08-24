@@ -1,0 +1,21 @@
+# Java and Maven
+**/target/
+*.class
+
+# Android and Gradle
+**/build/
+**/.gradle/
+*.apk
+*.aab
+*.iml
+
+# IDE files
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# Local and OS files
+local.properties
+.DS_Store
+Thumbs.db

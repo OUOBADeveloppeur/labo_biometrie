@@ -1,0 +1,4 @@
+<resources>
+    <dimen name="lib_pp_info_margin_top">8dp</dimen>
+    <dimen name="lib_pp_info_font_size">16sp</dimen>
+</resources>

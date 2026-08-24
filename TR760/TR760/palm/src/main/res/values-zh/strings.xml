@@ -1,0 +1,57 @@
+<resources>
+    <string name="activity_example_model_copy_success">模型文件复制成功</string>
+    <string name="activity_example_camera_not_turn_on">未打开相机</string>
+    <string name="activity_example_algo_not_init">算法未初始化</string>
+    <string name="activity_example_btn_create">创建</string>
+    <string name="activity_example_btn_cancel">取消</string>
+    <string name="activity_example_info_not_be_empty">companyId | sn | ip | port 不能为空</string>
+    <string name="activity_example_palm_client_not_create">PalmClient未创建</string>
+    <string name="activity_example_btn_query">查询</string>
+    <string name="activity_example_input_correct_path">请输入rgbPath的正确路径</string>
+    <string name="activity_example_no_image">路径下未发现图片</string>
+    <string name="activity_example_enter_correct_path">请输入irPath的正确路径</string>
+    <string name="activity_example_extra_feature_failed">从图片中提取特征值失败,无法云服务查询</string>
+    <string name="activity_example_btn_delete">删除</string>
+    <string name="activity_example_enter_correct_feature_id">请输入正确的FeatureId！</string>
+    <string name="activity_example_btn_register">注册</string>
+    <string name="activity_example_license_not_exist">license文件不存在</string>
+    <string name="activity_example_algo_enable_first">请先使能算法！</string>
+    <string name="activity_example_stop_capture_failed">停止抓拍指令失败, ret:</string>
+    <string name="activity_example_stop_capture_success">停止抓拍指令成功</string>
+    <string name="activity_example_capture_continuously_failed">持续抓拍指令失败, ret:</string>
+    <string name="activity_example_capture_one_failed">抓拍一次指令失败, ret:</string>
+    <string name="activity_example_algo_already_enable">算法已使能!</string>
+    <string name="activity_example_initializing">算法正在初始化!</string>
+    <string name="activity_example_btn_confirm">确定</string>
+    <string name="activity_example_please_input_path">请输入确路径!</string>
+    <string name="activity_example_algo_enable_success">算法使能成功</string>
+    <string name="activity_example_algo_enable_failed">算法使能失败,ret:</string>
+    <string name="activity_example_capture_timeout">抓拍超时</string>
+    <string name="activity_example_camera_is_opened">相机已打开</string>
+    <string name="activity_example_stream_create_failed">创建流失败</string>
+
+    <string-array name="stream_type">
+        <item>RGB</item>
+        <item>IR</item>
+        <item>DEPTH</item>
+        <item>RGBD</item>
+        <item>RGBIR</item>
+        <item>RGBD_IR</item>
+        <item>DEPTH_IR</item>
+    </string-array>
+
+    <string name="button_text_open_device">打开设备</string>
+    <string name="button_text_stream_mode">流类型:</string>
+    <string name="button_text_switch_stream">启动流</string>
+
+    <string name="button_text_alg_enable">使能算法</string>
+    <string name="button_text_capture_once">抓拍一次</string>
+    <string name="button_text_capture">连续抓拍</string>
+    <string name="button_text_stop_capture">停止抓拍</string>
+
+    <string name="button_text_create_connect">创建连接</string>
+    <string name="button_text_regist_server">注册服务</string>
+    <string name="button_text_remove_id">删除特征</string>
+    <string name="button_text_get_id">查询特征</string>
+
+</resources>

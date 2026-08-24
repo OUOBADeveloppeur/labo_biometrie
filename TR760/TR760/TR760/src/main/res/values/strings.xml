@@ -1,0 +1,87 @@
+<resources>
+    <string name="app_name">HF-TR760</string>
+
+    <!--iris-->
+    <string name="start_iris">Iris acquisition</string>
+    <string name="start_102_iris">102 Iris acquistion</string>
+    <string name="start_iris_binocular">Iris binocular acquistion</string>
+    <string name="enroll">enroll</string>
+    <string name="verify">Verification</string>
+    <string name="open_camera">Open Camera</string>
+    <string name="close_camera">Close Camera</string>
+    <string name="open_light">Open Light</string>
+    <string name="close_light">Close Light</string>
+    <string name="capture">Capture</string>
+    <string name="capture_success">Capture Success</string>
+    <string name="acquire_image">Acquire Image</string>
+    <string name="quality_score">Quality Score</string>
+    <string name="cancel">Cancel</string>
+    <string name="enroll_success">Enrollment succeeded</string>
+    <string name="enroll_failed">Enrollment failed</string>
+    <string name="verify_success">Verification succeeded.</string>
+    <string name="verify_failed">Verification failed.</string>
+    <string name="enroll_progress">Enrollment Progress</string>
+    <string name="acquire_success">Image acquisition succeeded</string>
+    <string name="acquire_failed">Failed to get image</string>
+    <string name="too_closer">Too closer</string>
+    <string name="too_far">Too far</string>
+    <string name="keep_away">Move backwards</string>
+    <string name="be_closer">Get closer</string>
+    <string name="no_iris_detected">No iris detected</string>
+    <string name="iris_location_failed">Location failed</string>
+    <string name="iris_pool_quality">Pool quality</string>
+    <string name="open_eyes_wide">Please open eyes wide</string>
+    <string name="verifying">Verifying...</string>
+    <string name="not_enroll">No iris, please enroll</string>
+    <string name="text_auth_success">Activation successful</string>
+    <string name="text_auth_fail">Activation fails</string>
+    <string name="text_mirror">Mirror</string>
+    <string name="text_flip">Flip</string>
+    <string name="text_split">split</string>
+    <string name="focal_length">Focal length</string>
+    <string name="cm_25">25cm</string>
+    <string name="cm_30">30cm</string>
+    <string name="loop_test">Loop Test</string>
+    <string name="color_card_detection">Color card detection</string>
+    <string name="dirty_spot_detection">Dirty spot detection</string>
+    <string name="start_test">Start testing</string>
+    <string name="exit">Exit</string>
+
+    <string name="door_signal_duration">signal duration(ms)</string>
+    <string name="item_nfc">NFC Reader</string>
+    <string name="title_activity_sip_settings">SipSettingsActivity</string>
+
+    <string name="item_fast">Fast</string>
+    <string name="item_ocr">OCR</string>
+
+    <string name="face">face</string>
+    <string name="face2">face dual camera</string>
+    <string name="user_name">user name</string>
+    <string name="user_list">user list</string>
+
+    <string name="user_delete">delete user?</string>
+
+    <string name="take_photo">take photo</string>
+
+    <string name="identifying">identifying...</string>
+    <string name="success">success</string>
+    <string name="failed">failed</string>
+    <string name="loading">loading</string>
+    <string name="stranger">stranger</string>
+    <string name="no_user">no user</string>
+    <string name="hello">hello</string>
+
+    <string name="yesconn">connect</string>
+    <string name="str_resel">research</string>
+    <string name="str_wifi_now">wifi name：</string>
+    <string name="str_wifi_no">wifi is not enable</string>
+
+    <string name="conn_failed">connect failed</string>
+    <string name="conn_closed">connect closed</string>
+    <string name="conn_success">connect success</string>
+    <string name="conn_no">no device</string>
+
+    <string name="psam_reset">Psam Reset</string>
+    <string name="psam_apdu">Psam Apdu</string>
+    <string name="psam_close">Psam Close</string>
+</resources>

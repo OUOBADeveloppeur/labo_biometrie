@@ -1,0 +1,66 @@
+plugins {
+    id 'com.android.library'
+}
+
+android {
+    namespace 'com.hf.ui'
+    compileSdk 34
+
+    defaultConfig {
+        minSdk 23
+        targetSdk 34
+        versionCode 1
+        versionName "1.0"
+
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+}
+
+dependencies {
+    implementation 'androidx.appcompat:appcompat:1.6.1'
+    implementation 'com.google.android.material:material:1.5.0'
+    //recycler
+    implementation 'androidx.recyclerview:recyclerview:1.2.1'
+    //Toasty
+    //implementation 'com.github.GrenderG:Toasty:1.5.2'废除
+    //event bus
+    implementation 'org.greenrobot:eventbus:3.3.1'
+
+
+    // PictureSelector basic (Necessary)
+    implementation 'io.github.lucksiege:pictureselector:v3.10.7'
+    // image compress library (Not necessary)
+
+    implementation 'io.github.lucksiege:compress:v3.10.7'
+    // uCrop library (Not necessary)
+    implementation 'io.github.lucksiege:ucrop:v3.10.7'
+    // simple camerax library (Not necessary)
+    implementation 'io.github.lucksiege:camerax:v3.10.7'
+    //permission
+    implementation 'com.github.getActivity:XXPermissions:18.62'
+    implementation("io.github.thanosfisherman.wifiutils:wifiutils:1.6.6")
+
+    //image
+    implementation 'com.squareup.picasso:picasso:2.8'
+    //compressor压缩
+    implementation 'id.zelory:compressor:2.1.1'
+
+    // PictureSelector basic (Necessary)
+    implementation 'io.github.lucksiege:pictureselector:v3.10.7'
+    // image compress library (Not necessary)
+    implementation 'io.github.lucksiege:compress:v3.10.7'
+    // uCrop library (Not necessary)
+    implementation 'io.github.lucksiege:ucrop:v3.10.7'
+    // simple camerax library (Not necessary)
+    implementation 'io.github.lucksiege:camerax:v3.10.7'
+
+    //network
+    implementation 'com.squareup.okhttp3:okhttp:4.9.0'
+    implementation 'com.alibaba:fastjson:1.2.79'
+    //download file
+    implementation 'com.liulishuo.filedownloader:library:1.7.7'
+}

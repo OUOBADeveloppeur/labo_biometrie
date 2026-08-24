@@ -1,0 +1,394 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/lib_pp_white"
+    android:orientation="vertical">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="left|top"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center">
+
+                <params.com.stepview.StatusViewScroller
+                    android:id="@+id/sv_pp_status"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:entries="@array/pp_status"
+                    app:circleColor="#CC004B8D"
+                    app:circleColorCurrent="#004B8D"
+                    app:circleColorIncomplete="#BCBCBE"
+                    app:circleColorType="fillStroke"
+                    app:circleStrokeColorCurrent="#91A8D0"
+                    app:circleStrokeWidth="4dp"
+                    app:completeDrawable="@drawable/pp_ic_done_black_24dp"
+                    app:currentCount="1"
+                    app:drawLabels="true"
+                    app:lineColor="@android:color/black"
+                    app:lineColorCurrent="#91A8D0"
+                    app:lineColorIncomplete="#B4B7BA"
+                    app:lineGap="5dp"
+                    app:lineWidth="3dp"
+                    app:stepCount="5"
+                    app:textColorLabels="@android:color/white"
+                    app:textColorLabelsCurrent="@android:color/white"
+                    app:textColorLabelsIncomplete="@android:color/black"
+                    app:textSizeLabels="15sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:gravity="center_horizontal"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tv_pp_tip"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:lineSpacingExtra="16dp"
+                    android:text="@string/lib_pp_tip_step_1"
+                    android:textColor="@color/lib_pp_black"
+                    android:textSize="28sp" />
+            </LinearLayout>
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:padding="15dp">
+
+                <LinearLayout
+                    android:id="@+id/ll_pp_user_info"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:orientation="vertical">
+
+                        <ImageView
+                            android:id="@+id/iv_pp_photo"
+                            android:layout_width="match_parent"
+                            android:layout_height="120dp"
+                            android:scaleType="centerInside" />
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical">
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:includeFontPadding="false"
+                                    android:text="@string/lib_pp_info_title_type"
+                                    android:textColor="@color/lib_pp_info_title_black"
+                                    android:textSize="@dimen/lib_pp_info_font_size" />
+
+                                <TextView
+                                    android:id="@+id/tv_pp_info_type"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:includeFontPadding="false"
+                                    android:textColor="@color/lib_pp_info_black"
+                                    android:textSize="@dimen/lib_pp_info_font_size" />
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="40dp"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:includeFontPadding="false"
+                                    android:text="@string/lib_pp_info_title_country_code"
+                                    android:textColor="@color/lib_pp_info_title_black"
+                                    android:textSize="@dimen/lib_pp_info_font_size" />
+
+                                <TextView
+                                    android:id="@+id/tv_pp_info_country_code"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:includeFontPadding="false"
+                                    android:textColor="@color/lib_pp_info_black"
+                                    android:textSize="@dimen/lib_pp_info_font_size" />
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="40dp"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:includeFontPadding="false"
+                                    android:text="@string/lib_pp_info_title_passport_no"
+                                    android:textColor="@color/lib_pp_info_title_black"
+                                    android:textSize="@dimen/lib_pp_info_font_size" />
+
+                                <TextView
+                                    android:id="@+id/tv_pp_info_no"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:includeFontPadding="false"
+                                    android:textColor="@color/lib_pp_info_black"
+                                    android:textSize="@dimen/lib_pp_info_font_size" />
+                            </LinearLayout>
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="3dp"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:includeFontPadding="false"
+                                android:text="@string/lib_pp_info_title_surname"
+                                android:textColor="@color/lib_pp_info_title_black"
+                                android:textSize="@dimen/lib_pp_info_font_size" />
+
+                            <TextView
+                                android:id="@+id/tv_pp_info_surname"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:includeFontPadding="false"
+                                android:textColor="@color/lib_pp_info_black"
+                                android:textSize="@dimen/lib_pp_info_font_size" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="3dp"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:includeFontPadding="false"
+                                android:text="@string/lib_pp_info_title_given_name"
+                                android:textColor="@color/lib_pp_info_title_black"
+                                android:textSize="@dimen/lib_pp_info_font_size" />
+
+                            <TextView
+                                android:id="@+id/tv_pp_info_given_name"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:includeFontPadding="false"
+                                android:textColor="@color/lib_pp_info_black"
+                                android:textSize="@dimen/lib_pp_info_font_size" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="3dp"
+                            android:orientation="horizontal">
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:includeFontPadding="false"
+                                    android:text="@string/lib_pp_info_title_date_of_birth"
+                                    android:textColor="@color/lib_pp_info_title_black"
+                                    android:textSize="@dimen/lib_pp_info_font_size" />
+
+                                <TextView
+                                    android:id="@+id/tv_pp_info_date_of_birth"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:includeFontPadding="false"
+                                    android:textColor="@color/lib_pp_info_black"
+                                    android:textSize="@dimen/lib_pp_info_font_size" />
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="40dp"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:includeFontPadding="false"
+                                    android:text="@string/lib_pp_info_title_gender"
+                                    android:textColor="@color/lib_pp_info_title_black"
+                                    android:textSize="@dimen/lib_pp_info_font_size" />
+
+                                <TextView
+                                    android:id="@+id/tv_pp_info_gender"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:includeFontPadding="false"
+                                    android:textColor="@color/lib_pp_info_black"
+                                    android:textSize="@dimen/lib_pp_info_font_size" />
+                            </LinearLayout>
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="3dp"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:includeFontPadding="false"
+                                android:text="@string/lib_pp_info_title_nationality"
+                                android:textColor="@color/lib_pp_info_title_black"
+                                android:textSize="@dimen/lib_pp_info_font_size" />
+
+                            <TextView
+                                android:id="@+id/tv_pp_info_nationality"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:includeFontPadding="false"
+                                android:textColor="@color/lib_pp_info_black"
+                                android:textSize="@dimen/lib_pp_info_font_size" />
+                        </LinearLayout>
+
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="3dp"
+                            android:orientation="horizontal">
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:includeFontPadding="false"
+                                    android:text="@string/lib_pp_info_title_date_of_expiry"
+                                    android:textColor="@color/lib_pp_info_title_black"
+                                    android:textSize="@dimen/lib_pp_info_font_size" />
+
+                                <TextView
+                                    android:id="@+id/tv_pp_info_date_of_expiry"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:includeFontPadding="false"
+                                    android:textColor="@color/lib_pp_info_black"
+                                    android:textSize="@dimen/lib_pp_info_font_size" />
+                            </LinearLayout>
+
+                            <LinearLayout
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="40dp"
+                                android:orientation="vertical">
+
+                                <TextView
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:includeFontPadding="false"
+                                    android:text="@string/lib_pp_info_title_optional_info"
+                                    android:textColor="@color/lib_pp_info_title_black"
+                                    android:textSize="@dimen/lib_pp_info_font_size" />
+
+                                <TextView
+                                    android:id="@+id/tv_pp_info_optional_info"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:includeFontPadding="false"
+                                    android:textColor="@color/lib_pp_info_black"
+                                    android:textSize="@dimen/lib_pp_info_font_size" />
+                            </LinearLayout>
+                        </LinearLayout>
+
+
+                        <LinearLayout
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="3dp"
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:text="@string/lib_pp_info_title_auth_result"
+                                android:textColor="@color/lib_pp_info_title_black"
+                                android:textSize="@dimen/lib_pp_info_font_size" />
+
+                            <TextView
+                                android:id="@+id/tv_pp_info_auth_result"
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:textColor="@color/lib_pp_info_black"
+                                android:textSize="@dimen/lib_pp_info_font_size" />
+                        </LinearLayout>
+                    </LinearLayout>
+
+                </LinearLayout>
+            </RelativeLayout>
+
+            <TextView
+                android:id="@+id/tv_pp_info_mrz"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="0dp"
+                android:gravity="center_horizontal"
+                android:textColor="@color/lib_pp_info_black"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <Button
+                android:id="@+id/btn_scan"
+                android:layout_width="160dp"
+                android:layout_height="42dp"
+                android:layout_gravity="center_horizontal"
+                android:background="@drawable/pp_selector_btn_blue"
+                android:text="SCAN"
+                android:textAllCaps="false"
+                android:textColor="@color/lib_pp_white"
+                android:textSize="20sp" />
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>

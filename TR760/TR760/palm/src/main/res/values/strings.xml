@@ -1,0 +1,57 @@
+<resources>
+    <string name="activity_example_model_copy_success">The model file is copied successfully. Procedure</string>
+    <string name="activity_example_camera_not_turn_on">Camera not turned on</string>
+    <string name="activity_example_algo_not_init">The algorithm is not initialized</string>
+    <string name="activity_example_btn_create">found</string>
+    <string name="activity_example_btn_cancel">Cancel</string>
+    <string name="activity_example_info_not_be_empty">companyId | sn | ip | port cannot be empty</string>
+    <string name="activity_example_palm_client_not_create">PalmClient is not created</string>
+    <string name="activity_example_btn_query">inquire</string>
+    <string name="activity_example_input_correct_path">Please enter the correct path of rgbPath</string>
+    <string name="activity_example_no_image">No image was found under the path</string>
+    <string name="activity_example_enter_correct_path">Please enter the correct path for irPath</string>
+    <string name="activity_example_extra_feature_failed">Failed to extract the feature value from the image and cannot be queried by the cloud service</string>
+    <string name="activity_example_btn_delete">delete</string>
+    <string name="activity_example_enter_correct_feature_id">Please enter FeatureId correctly!</string>
+    <string name="activity_example_btn_register">Sign in</string>
+    <string name="activity_example_license_not_exist">The license file does not exist</string>
+    <string name="activity_example_algo_enable_first">Enable the algorithm first!</string>
+    <string name="activity_example_stop_capture_failed">Stop capture command failed, ret:</string>
+    <string name="activity_example_stop_capture_success">The stop capture command succeeded</string>
+    <string name="activity_example_capture_continuously_failed">Continuous capture command failed, ret:</string>
+    <string name="activity_example_capture_one_failed">Failed to capture a command, ret:</string>
+    <string name="activity_example_algo_already_enable">Algorithm is enabled!</string>
+    <string name="activity_example_initializing">The algorithm is initializing!</string>
+    <string name="activity_example_btn_confirm">OK</string>
+    <string name="activity_example_please_input_path">Please enter the correct path!</string>
+    <string name="activity_example_algo_enable_success">The algorithm was successfully enabled. Procedure</string>
+    <string name="activity_example_algo_enable_failed">Algorithm enablement failed,ret:</string>
+    <string name="activity_example_capture_timeout">Capture timeout</string>
+    <string name="activity_example_camera_is_opened">Camera turned on</string>
+    <string name="activity_example_stream_create_failed">Flow creation failure</string>
+
+    <string-array name="stream_type">
+        <item>RGB</item>
+        <item>AND</item>
+        <item>DEPTH</item>
+        <item>RGBD</item>
+        <item>RGBIR</item>
+        <item>RGBD_IR</item>
+        <item>DEPTH_IR</item>
+    </string-array>
+
+    <string name="button_text_open_device">Turn on the device</string>
+    <string name="button_text_stream_mode">Stream type:</string>
+    <string name="button_text_switch_stream">Starting stream</string>
+
+    <string name="button_text_alg_enable">Enable algorithm</string>
+    <string name="button_text_capture_once">Take a snap</string>
+    <string name="button_text_capture">Continuous capture</string>
+    <string name="button_text_stop_capture">Stop snapping</string>
+
+    <string name="button_text_create_connect">Create a connection</string>
+    <string name="button_text_regist_server">Registration service</string>
+    <string name="button_text_remove_id">Delete feature</string>
+    <string name="button_text_get_id">Query feature</string>
+
+</resources>

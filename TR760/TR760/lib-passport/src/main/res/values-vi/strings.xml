@@ -1,0 +1,38 @@
+<resources>
+    <string-array name="pp_status">
+        <item>Mã siêu âm</item>
+        <item>NFC Reading (bằng tiếng Anh).</item>
+        <item>Thông tin căn bản</item>
+        <item>Hình ảnh</item>
+        <item>Sự xác nhận</item>
+    </string-array>
+
+    <string name="lib_pp_tip_step_1">Vui lòng scan mã MRZ trên hộ chiếu của bạn</string>
+    <string name="lib_pp_tip_step_2">Giữ hộ chiếu gần thiết bị của bạn</string>
+    <string name="lib_pp_tip_step_3">Đọc những thông tin cơ bản, làm ơn đợi...</string>
+    <string name="lib_pp_tip_step_4">Đọc thông tin hình ảnh, xin hãy chờ...</string>
+    <string name="lib_pp_tip_step_5">Cho phép cấp hộ chiếu, xin chờ...</string>
+    <string name="lib_pp_tip_step_6">Vui lòng quét hộ chiếu của bạn</string>
+    <string name="lib_pp_tip_parse_code_failure">Không phân tích thông tin mã MRZ, vui lòng quét mã một lần nữa</string>
+    <string name="lib_pp_tip_read_failure">Đọc không đúng, xin đừng di chuyển hộ chiếu trong khi đọc thông tin</string>
+    <string name="lib_pp_retry_nfc">Thử lại</string>
+    <string name="lib_pp_retry_scan_code">Xem lại</string>
+    <string name="lib_pp_return">Trở lại</string>
+    <string name="lib_pp_auth_result_success">Thành công</string>
+    <string name="lib_pp_auth_result_success_1">Thành công trong việc xác nhận Chip</string>
+    <string name="lib_pp_auth_result_success_2">Việc xác nhận thụ động thành công</string>
+    <string name="lib_pp_auth_result_failed">Thất bại</string>
+    <string name="lib_pp_auth_result_failed_1">Thông tin mã MRZ không phù hợp với thông tin chip</string>
+    <string name="lib_pp_auth_result_failed_2">Không đọc được ảnh</string>
+    <string name="lib_pp_info_title_type">Đánh máy.</string>
+    <string name="lib_pp_info_title_country_code">Luật quốc gia</string>
+    <string name="lib_pp_info_title_passport_no">Hộ chiếu không.</string>
+    <string name="lib_pp_info_title_surname">Họ</string>
+    <string name="lib_pp_info_title_given_name">Tên riêng</string>
+    <string name="lib_pp_info_title_date_of_birth">Ngày sinh</string>
+    <string name="lib_pp_info_title_gender">Giới tính</string>
+    <string name="lib_pp_info_title_nationality">Quốc tịch</string>
+    <string name="lib_pp_info_title_date_of_expiry">Ngày hết hạn</string>
+    <string name="lib_pp_info_title_optional_info">Thông tin tùy chọn</string>
+    <string name="lib_pp_info_title_auth_result">Kết quả xác nhận</string>
+</resources>
