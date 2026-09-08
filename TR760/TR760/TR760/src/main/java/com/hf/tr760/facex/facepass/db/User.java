@@ -17,80 +17,66 @@ public class User {
     @Property
     public String sex = "";
     @Property
-    public String age = "";
+    public String dateNaissance = "";
     @Property
-    public String ville = "";
+    public String localite = "";
     @Property
     public String faceToken = "";
-
-    @Generated(hash = 1683247035)
-    public User(Long id, String name, String prenom, String sex, String age, String ville, String faceToken) {
+    @Generated(hash = 1079076218)
+    public User(Long id, String name, String prenom, String sex,
+            String dateNaissance, String localite, String faceToken) {
         this.id = id;
         this.name = name;
         this.prenom = prenom;
         this.sex = sex;
-        this.age = age;
-        this.ville = ville;
+        this.dateNaissance = dateNaissance;
+        this.localite = localite;
         this.faceToken = faceToken;
     }
-
     @Generated(hash = 586692638)
     public User() {
     }
-
     public Long getId() {
         return this.id;
     }
-
     public void setId(Long id) {
         this.id = id;
     }
-
     public String getName() {
         return this.name;
     }
-
     public void setName(String name) {
         this.name = name;
     }
-
     public String getPrenom() {
         return this.prenom;
     }
-
     public void setPrenom(String prenom) {
         this.prenom = prenom;
     }
-
     public String getSex() {
         return this.sex;
     }
-
     public void setSex(String sex) {
         this.sex = sex;
     }
-
-    public String getAge() {
-        return this.age;
+    public String getDateNaissance() {
+        return this.dateNaissance;
     }
-
-    public void setAge(String age) {
-        this.age = age;
+    public void setDateNaissance(String dateNaissance) {
+        this.dateNaissance = dateNaissance;
     }
-
-    public String getVille() {
-        return this.ville;
+    public String getLocalite() {
+        return this.localite;
     }
-
-    public void setVille(String ville) {
-        this.ville = ville;
+    public void setLocalite(String localite) {
+        this.localite = localite;
     }
-
     public String getFaceToken() {
         return this.faceToken;
     }
-
     public void setFaceToken(String faceToken) {
         this.faceToken = faceToken;
     }
+
 }

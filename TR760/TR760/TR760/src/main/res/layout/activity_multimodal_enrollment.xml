@@ -35,51 +35,89 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp"
+                android:padding="24dp"
                 android:visibility="visible">
 
-                <EditText
-                    android:id="@+id/etUserName"
+                <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Enter User Name"
-                    android:minHeight="48dp" />
+                    android:text="Informations Civiles"
+                    android:textSize="22sp"
+                    android:textStyle="bold"
+                    android:layout_marginBottom="24dp"
+                    android:textColor="#333333"/>
+
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="16dp"
+                    android:hint="Nom">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etUserName"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+                </com.google.android.material.textfield.TextInputLayout>
                     
-                <EditText
-                    android:id="@+id/etPrenom"
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Prénom"
-                    android:minHeight="48dp" />
+                    android:layout_marginBottom="16dp"
+                    android:hint="Prénom">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etPrenom"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+                </com.google.android.material.textfield.TextInputLayout>
 
-                <EditText
-                    android:id="@+id/etSex"
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Sexe (M/F)"
-                    android:minHeight="48dp" />
+                    android:layout_marginBottom="16dp"
+                    android:hint="Sexe (M/F)">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etSex"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+                </com.google.android.material.textfield.TextInputLayout>
 
-                <EditText
-                    android:id="@+id/etAge"
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Âge"
-                    android:inputType="number"
-                    android:minHeight="48dp" />
+                    android:layout_marginBottom="16dp"
+                    android:hint="Date de Naissance">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etAge"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:inputType="date" />
+                </com.google.android.material.textfield.TextInputLayout>
 
-                <EditText
-                    android:id="@+id/etVille"
+                <com.google.android.material.textfield.TextInputLayout
+                    style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Ville"
-                    android:minHeight="48dp" />
+                    android:layout_marginBottom="24dp"
+                    android:hint="Localité">
+                    <com.google.android.material.textfield.TextInputEditText
+                        android:id="@+id/etVille"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content" />
+                </com.google.android.material.textfield.TextInputLayout>
 
                 <Button
                     android:id="@+id/btnNextToStep2"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Next (Fingerprint)"
-                    android:layout_marginTop="16dp"/>
+                    android:layout_height="56dp"
+                    android:backgroundTint="#1E88E5"
+                    android:textColor="#FFFFFF"
+                    android:text="Suivant (Empreintes)"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
+                    android:layout_marginTop="8dp"/>
             </LinearLayout>
 
             <!-- STEP 2: FINGERPRINT -->
@@ -95,8 +133,9 @@
                     android:id="@+id/tvFpHint"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Please place 4 fingers on the scanner."
+                    android:text="Veuillez placer vos 4 doigts sur le lecteur."
                     android:gravity="center"
+                    android:textSize="16sp"
                     android:layout_marginBottom="16dp"/>
 
                 <ImageView
@@ -119,15 +158,23 @@
                 <Button
                     android:id="@+id/btnCaptureFp"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Capture 442 Fingerprints"
+                    android:layout_height="56dp"
+                    android:backgroundTint="#4CAF50"
+                    android:textColor="#FFFFFF"
+                    android:text="Capturer Empreintes (442)"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
                     android:layout_marginTop="16dp"/>
 
                 <Button
                     android:id="@+id/btnNextToStep3"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Next (Iris)"
+                    android:layout_height="56dp"
+                    android:backgroundTint="#1E88E5"
+                    android:textColor="#FFFFFF"
+                    android:text="Suivant (Iris)"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
                     android:layout_marginTop="16dp"/>
             </LinearLayout>
 
@@ -137,15 +184,16 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp"
+                android:padding="24dp"
                 android:visibility="gone">
 
                 <TextView
                     android:id="@+id/irisHintTv"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Look at the Iris Scanner"
+                    android:text="Regardez le scanner d'Iris"
                     android:gravity="center"
+                    android:textSize="16sp"
                     android:layout_marginBottom="16dp"/>
 
                 <FrameLayout
@@ -157,15 +205,23 @@
                 <Button
                     android:id="@+id/btnCaptureIris"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Capture Iris"
+                    android:layout_height="56dp"
+                    android:backgroundTint="#4CAF50"
+                    android:textColor="#FFFFFF"
+                    android:text="Capturer Iris"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
                     android:layout_marginTop="16dp"/>
 
                 <Button
                     android:id="@+id/btnNextToStep4"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Next (Face)"
+                    android:layout_height="56dp"
+                    android:backgroundTint="#1E88E5"
+                    android:textColor="#FFFFFF"
+                    android:text="Suivant (Visage)"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
                     android:layout_marginTop="16dp"/>
             </LinearLayout>
 
@@ -175,21 +231,26 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
-                android:padding="16dp"
+                android:padding="24dp"
                 android:visibility="gone">
 
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Click below to open Face Camera"
+                    android:text="Cliquez ci-dessous pour ouvrir la caméra Faciale"
                     android:gravity="center"
+                    android:textSize="16sp"
                     android:layout_marginBottom="16dp"/>
 
                 <Button
                     android:id="@+id/btnLaunchFaceCamera"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Launch Face Camera"
+                    android:layout_height="56dp"
+                    android:backgroundTint="#4CAF50"
+                    android:textColor="#FFFFFF"
+                    android:text="Lancer la Caméra Faciale"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
                     android:layout_marginTop="16dp"/>
 
                 <TextView
@@ -199,16 +260,20 @@
                     android:text=""
                     android:textColor="#00FF00"
                     android:gravity="center"
+                    android:textSize="16sp"
+                    android:textStyle="bold"
                     android:layout_marginTop="16dp"/>
 
                 <Button
                     android:id="@+id/btnFinishEnrollment"
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Save &amp; Finish Enrollment"
+                    android:layout_height="64dp"
+                    android:text="SAUVEGARDER &amp; TERMINER"
                     android:layout_marginTop="32dp"
-                    android:backgroundTint="#4CAF50"
-                    android:textColor="#FFFFFF"/>
+                    android:backgroundTint="#F44336"
+                    android:textColor="#FFFFFF"
+                    android:textSize="18sp"
+                    android:textStyle="bold"/>
             </LinearLayout>
 
         </FrameLayout>

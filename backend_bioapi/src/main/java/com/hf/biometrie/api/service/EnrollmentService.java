@@ -21,8 +21,8 @@ public class EnrollmentService {
         u.setNom(request.getNom());
         u.setPrenom(request.getPrenom());
         u.setSexe(request.getSexe());
-        u.setAge(request.getAge());
-        u.setVille(request.getVille());
+        u.setDateNaissance(request.getDateNaissance());
+        u.setLocalite(request.getLocalite());
         u.setFaceToken(request.getFaceToken());
         u.setFacePhotoBase64(request.getFacePhotoBase64());
 
@@ -31,6 +31,7 @@ public class EnrollmentService {
                 Empreinte emp = new Empreinte();
                 emp.setPositionDoigt(et.getPosition());
                 emp.setTemplateBase64(et.getTemplateBase64());
+                emp.setImageBase64(et.getImageBase64());
                 emp.setUtilisateur(u);
                 u.getEmpreintes().add(emp);
             }

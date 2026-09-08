@@ -22,6 +22,9 @@ public class Empreinte {
     @Column(columnDefinition = "TEXT")
     private String templateBase64;
 
+    @Column(columnDefinition = "TEXT")
+    private String imageBase64;
+
     private LocalDateTime dateCapture;
 
     @ManyToOne(fetch = FetchType.LAZY)

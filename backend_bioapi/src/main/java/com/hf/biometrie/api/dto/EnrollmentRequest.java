@@ -8,8 +8,8 @@ public class EnrollmentRequest {
     private String nom;
     private String prenom;
     private String sexe;
-    private Integer age;
-    private String ville;
+    private String dateNaissance;
+    private String localite;
     private String faceToken;
     private String facePhotoBase64; // Image de la face en base64
 
@@ -20,5 +20,6 @@ public class EnrollmentRequest {
     public static class BiometricTemplate {
         private String position; // "left_0", "right_3", "left_iris", etc.
         private String templateBase64;
+        private String imageBase64; // Image de l'empreinte
     }
 }

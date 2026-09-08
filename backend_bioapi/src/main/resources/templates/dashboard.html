@@ -23,8 +23,8 @@
                 <th>Nom</th>
                 <th>Prénom</th>
                 <th>Sexe</th>
-                <th>Âge</th>
-                <th>Ville</th>
+                <th>Date de Naissance</th>
+                <th>Localité</th>
                 <th>Empreintes</th>
                 <th>Iris</th>
                 <th>Date</th>
@@ -34,17 +34,27 @@
             <tr th:each="u : ${utilisateurs}">
                 <td th:text="${u.id}"></td>
                 <td>
-                    <img th:if="${u.facePhotoBase64 != null}" th:src="${'data:image/jpeg;base64,' + u.facePhotoBase64}" class="face-img" alt="Face"/>
+                    <img th:if="${u.facePhotoBase64 != null}" th:src="|data:image/jpeg;base64,${u.facePhotoBase64}|" class="face-img" alt="Face"/>
                     <span th:if="${u.facePhotoBase64 == null}">N/A</span>
                 </td>
                 <td th:text="${u.nom}"></td>
                 <td th:text="${u.prenom}"></td>
                 <td th:text="${u.sexe}"></td>
-                <td th:text="${u.age}"></td>
-                <td th:text="${u.ville}"></td>
-                <td th:text="${u.empreintes.size()} + ' doigts'"></td>
+                <td th:text="${u.dateNaissance}"></td>
+                <td th:text="${u.localite}"></td>
+                <td>
+                    <span th:text="${u.empreintes.size()} + ' doigts'"></span>
+                    <br/>
+                    <div style="display: flex; gap: 5px; margin-top: 5px; flex-wrap: wrap;">
+                        <img th:each="emp : ${u.empreintes}" 
+                             th:if="${emp.imageBase64 != null}" 
+                             th:src="|data:image/bmp;base64,${emp.imageBase64}|" 
+                             style="width: 30px; height: 30px; object-fit: contain; border: 1px solid #ccc; background: white;" 
+                             th:title="${emp.positionDoigt}"/>
+                    </div>
+                </td>
                 <td th:text="${u.iris.size()} + ' iris'"></td>
-                <td th:text="${#temporals.format(u.dateCreation, 'dd/MM/yyyy HH:mm')}"></td>
+                <td th:text="${u.dateCreation != null ? #temporals.format(u.dateCreation, 'dd/MM/yyyy HH:mm') : 'N/A'}"></td>
             </tr>
         </tbody>
     </table>

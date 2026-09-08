@@ -61,6 +61,7 @@
             android:screenOrientation="portrait"/>
 
         <activity android:name=".fingerprint.MultimodalEnrollmentActivity"
+            android:theme="@style/Theme.MaterialComponents.Light.NoActionBar"
             android:screenOrientation="portrait"/>
 
 

@@ -28,8 +28,8 @@ public class UserDao extends AbstractDao<User, Long> {
         public final static Property Name = new Property(1, String.class, "name", false, "NAME");
         public final static Property Prenom = new Property(2, String.class, "prenom", false, "PRENOM");
         public final static Property Sex = new Property(3, String.class, "sex", false, "SEX");
-        public final static Property Age = new Property(4, String.class, "age", false, "AGE");
-        public final static Property Ville = new Property(5, String.class, "ville", false, "VILLE");
+        public final static Property DateNaissance = new Property(4, String.class, "dateNaissance", false, "DATE_NAISSANCE");
+        public final static Property Localite = new Property(5, String.class, "localite", false, "LOCALITE");
         public final static Property FaceToken = new Property(6, String.class, "faceToken", false, "FACE_TOKEN");
     }
 
@@ -50,8 +50,8 @@ public class UserDao extends AbstractDao<User, Long> {
                 "\"NAME\" TEXT," + // 1: name
                 "\"PRENOM\" TEXT," + // 2: prenom
                 "\"SEX\" TEXT," + // 3: sex
-                "\"AGE\" TEXT," + // 4: age
-                "\"VILLE\" TEXT," + // 5: ville
+                "\"DATE_NAISSANCE\" TEXT," + // 4: dateNaissance
+                "\"LOCALITE\" TEXT," + // 5: localite
                 "\"FACE_TOKEN\" TEXT);"); // 6: faceToken
     }
 
@@ -85,14 +85,14 @@ public class UserDao extends AbstractDao<User, Long> {
             stmt.bindString(4, sex);
         }
  
-        String age = entity.getAge();
-        if (age != null) {
-            stmt.bindString(5, age);
+        String dateNaissance = entity.getDateNaissance();
+        if (dateNaissance != null) {
+            stmt.bindString(5, dateNaissance);
         }
  
-        String ville = entity.getVille();
-        if (ville != null) {
-            stmt.bindString(6, ville);
+        String localite = entity.getLocalite();
+        if (localite != null) {
+            stmt.bindString(6, localite);
         }
  
         String faceToken = entity.getFaceToken();
@@ -125,14 +125,14 @@ public class UserDao extends AbstractDao<User, Long> {
             stmt.bindString(4, sex);
         }
  
-        String age = entity.getAge();
-        if (age != null) {
-            stmt.bindString(5, age);
+        String dateNaissance = entity.getDateNaissance();
+        if (dateNaissance != null) {
+            stmt.bindString(5, dateNaissance);
         }
  
-        String ville = entity.getVille();
-        if (ville != null) {
-            stmt.bindString(6, ville);
+        String localite = entity.getLocalite();
+        if (localite != null) {
+            stmt.bindString(6, localite);
         }
  
         String faceToken = entity.getFaceToken();
@@ -153,8 +153,8 @@ public class UserDao extends AbstractDao<User, Long> {
             cursor.isNull(offset + 1) ? null : cursor.getString(offset + 1), // name
             cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2), // prenom
             cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3), // sex
-            cursor.isNull(offset + 4) ? null : cursor.getString(offset + 4), // age
-            cursor.isNull(offset + 5) ? null : cursor.getString(offset + 5), // ville
+            cursor.isNull(offset + 4) ? null : cursor.getString(offset + 4), // dateNaissance
+            cursor.isNull(offset + 5) ? null : cursor.getString(offset + 5), // localite
             cursor.isNull(offset + 6) ? null : cursor.getString(offset + 6) // faceToken
         );
         return entity;
@@ -166,8 +166,8 @@ public class UserDao extends AbstractDao<User, Long> {
         entity.setName(cursor.isNull(offset + 1) ? null : cursor.getString(offset + 1));
         entity.setPrenom(cursor.isNull(offset + 2) ? null : cursor.getString(offset + 2));
         entity.setSex(cursor.isNull(offset + 3) ? null : cursor.getString(offset + 3));
-        entity.setAge(cursor.isNull(offset + 4) ? null : cursor.getString(offset + 4));
-        entity.setVille(cursor.isNull(offset + 5) ? null : cursor.getString(offset + 5));
+        entity.setDateNaissance(cursor.isNull(offset + 4) ? null : cursor.getString(offset + 4));
+        entity.setLocalite(cursor.isNull(offset + 5) ? null : cursor.getString(offset + 5));
         entity.setFaceToken(cursor.isNull(offset + 6) ? null : cursor.getString(offset + 6));
      }
     

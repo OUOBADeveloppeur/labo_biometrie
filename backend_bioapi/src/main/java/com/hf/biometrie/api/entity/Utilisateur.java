@@ -21,8 +21,8 @@ public class Utilisateur {
     private String nom;
     private String prenom;
     private String sexe;
-    private Integer age;
-    private String ville;
+    private String dateNaissance;
+    private String localite;
     private String faceToken;
 
     @Column(columnDefinition = "TEXT")
