@@ -2,61 +2,292 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Biometric Dashboard</title>
+    <title>Biometric Dashboard - Enrôlements & Benchmarking</title>
     <style>
-        body { font-family: Arial, sans-serif; margin: 20px; background-color: #f4f4f9;}
-        table { border-collapse: collapse; width: 100%; background: white; margin-top: 20px;}
-        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
-        th { background-color: #4CAF50; color: white; }
-        tr:nth-child(even){background-color: #f2f2f2;}
-        .face-img { width: 50px; height: 50px; object-fit: cover; border-radius: 50%; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 25px; background-color: #f0f2f5; color: #333; }
+        .header-title { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+        .header-title h1 { margin: 0; color: #1a237e; font-size: 26px; }
+        .badge-count { background: #1a237e; color: white; padding: 4px 12px; border-radius: 20px; font-size: 14px; }
+        
+        .table-container { background: white; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); overflow: hidden; }
+        table { border-collapse: collapse; width: 100%; text-align: left; }
+        th, td { padding: 14px 16px; border-bottom: 1px solid #e0e0e0; }
+        th { background-color: #283593; color: white; font-weight: 600; text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px; }
+        
+        tr.user-row { cursor: pointer; transition: background-color 0.2s ease; }
+        tr.user-row:hover { background-color: #e8eaf6 !important; }
+        tr:nth-child(even) { background-color: #fafafa; }
+        
+        .face-avatar { width: 44px; height: 44px; object-fit: cover; border-radius: 50%; border: 2px solid #3f51b5; }
+        .chip { display: inline-block; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; }
+        .chip-fp { background: #e8f5e9; color: #2e7d32; }
+        .chip-iris { background: #e1f5fe; color: #0288d1; }
+
+        /* MODAL STYLES */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 1000;
+            backdrop-filter: blur(3px);
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-content {
+            background: white;
+            border-radius: 14px;
+            width: 85%;
+            max-width: 850px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            animation: fadeIn 0.2s ease-out;
+        }
+        @keyframes fadeIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        .modal-header {
+            background: #1a237e;
+            color: white;
+            padding: 18px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 14px 14px 0 0;
+        }
+        .modal-header h2 { margin: 0; font-size: 20px; }
+        .close-btn {
+            background: transparent;
+            border: none;
+            color: white;
+            font-size: 26px;
+            cursor: pointer;
+            line-height: 1;
+        }
+        .modal-body { padding: 24px; }
+        .profile-section { display: flex; gap: 24px; margin-bottom: 24px; align-items: center; background: #f8f9fa; padding: 16px; border-radius: 10px; }
+        .profile-img-large { width: 110px; height: 110px; object-fit: cover; border-radius: 10px; border: 3px solid #1a237e; }
+        .info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; flex: 1; }
+        .info-item { font-size: 14px; }
+        .info-item strong { color: #555; display: block; font-size: 12px; text-transform: uppercase; }
+
+        .section-title { font-size: 16px; font-weight: bold; color: #1a237e; margin: 20px 0 10px 0; border-bottom: 2px solid #e8eaf6; padding-bottom: 6px; }
+        .finger-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; margin-top: 10px; }
+        .finger-card {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 10px;
+            text-align: center;
+            background: #fff;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+        .finger-card img { width: 60px; height: 60px; object-fit: contain; margin-bottom: 6px; }
+        .tag-device { font-size: 11px; background: #e3f2fd; color: #1565c0; padding: 2px 6px; border-radius: 4px; font-weight: 600; display: inline-block; margin: 2px 0; }
+        .tag-nfiq { font-size: 11px; padding: 2px 6px; border-radius: 4px; font-weight: 600; }
+        .tag-nfiq.score-bon { background: #e8f5e9; color: #2e7d32; }
+        .tag-nfiq.score-moyen { background: #fff9c4; color: #f57f17; }
+        .tag-nfiq.score-mauvais { background: #ffebee; color: #c62828; }
+        .tag-time { font-size: 11px; background: #fff3e0; color: #e65100; padding: 2px 6px; border-radius: 4px; font-weight: 600; }
     </style>
 </head>
 <body>
-    <h1>Tableau de Bord - Enrôlements Biométriques</h1>
-    
-    <table>
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Photo</th>
-                <th>Nom</th>
-                <th>Prénom</th>
-                <th>Sexe</th>
-                <th>Date de Naissance</th>
-                <th>Localité</th>
-                <th>Empreintes</th>
-                <th>Iris</th>
-                <th>Date</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr th:each="u : ${utilisateurs}">
-                <td th:text="${u.id}"></td>
-                <td>
-                    <img th:if="${u.facePhotoBase64 != null}" th:src="|data:image/jpeg;base64,${u.facePhotoBase64}|" class="face-img" alt="Face"/>
-                    <span th:if="${u.facePhotoBase64 == null}">N/A</span>
-                </td>
-                <td th:text="${u.nom}"></td>
-                <td th:text="${u.prenom}"></td>
-                <td th:text="${u.sexe}"></td>
-                <td th:text="${u.dateNaissance}"></td>
-                <td th:text="${u.localite}"></td>
-                <td>
-                    <span th:text="${u.empreintes.size()} + ' doigts'"></span>
-                    <br/>
-                    <div style="display: flex; gap: 5px; margin-top: 5px; flex-wrap: wrap;">
-                        <img th:each="emp : ${u.empreintes}" 
-                             th:if="${emp.imageBase64 != null}" 
-                             th:src="|data:image/bmp;base64,${emp.imageBase64}|" 
-                             style="width: 30px; height: 30px; object-fit: contain; border: 1px solid #ccc; background: white;" 
-                             th:title="${emp.positionDoigt}"/>
+    <div class="header-title">
+        <h1>📊 Tableau de Bord - Enrôlements & Banc de Test Biométrique</h1>
+        <span class="badge-count" th:text="${utilisateurs.size()} + ' enrôlés'"></span>
+    </div>
+
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Photo</th>
+                    <th>Nom & Prénom</th>
+                    <th>Sexe</th>
+                    <th>Date Naiss.</th>
+                    <th>Localité</th>
+                    <th>Empreintes</th>
+                    <th>Iris</th>
+                    <th>Date d'enrôlement</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="u : ${utilisateurs}" class="user-row" th:onclick="'openUserModal(' + ${u.id} + ')'">
+                    <td th:text="'#' + ${u.id}" style="font-weight: bold; color: #1a237e;"></td>
+                    <td>
+                        <img th:if="${u.facePhotoBase64 != null}" th:src="|data:image/jpeg;base64,${u.facePhotoBase64}|" class="face-avatar" alt="Face"/>
+                        <span th:if="${u.facePhotoBase64 == null}" style="color: #999;">N/A</span>
+                    </td>
+                    <td><strong th:text="${u.nom} + ' ' + ${u.prenom}"></strong></td>
+                    <td th:text="${u.sexe}"></td>
+                    <td th:text="${u.dateNaissance}"></td>
+                    <td th:text="${u.localite}"></td>
+                    <td>
+                        <span class="chip chip-fp" th:text="${u.empreintes.size()} + ' doigts'"></span>
+                        <div th:if="${u.empreintes.size() > 0}" style="margin-top: 5px; display: flex; gap: 4px; flex-wrap: wrap;">
+                            <span th:if="${u.empreintes[0].deviceModel != null}" class="tag-device" th:text="${u.empreintes[0].deviceModel}" style="font-size: 10px;"></span>
+                            <span th:if="${u.empreintes[0].qualite != null}"
+                                  th:class="'tag-nfiq ' + (${u.empreintes[0].qualite >= 60} ? 'score-bon' : 'score-mauvais')"
+                                  th:text="'NFIQ: ' + ${u.empreintes[0].qualite}"
+                                  style="font-size: 10px;"></span>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="chip chip-iris" th:text="${u.iris.size()} + ' iris'"></span>
+                    </td>
+                    <td th:text="${u.dateCreation != null ? #temporals.format(u.dateCreation, 'dd/MM/yyyy HH:mm') : 'N/A'}" style="color: #666; font-size: 13px;"></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- MODAL DE DÉTAILS -->
+    <div id="userModal" class="modal-overlay" onclick="closeUserModalOnOverlay(event)">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Détails de l'Enrôlement</h2>
+                <button class="close-btn" onclick="closeUserModal()">&times;</button>
+            </div>
+            <div class="modal-body" id="modalBody">
+                <!-- Rempli dynamiquement en JS -->
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        const usersData = /*[[${utilisateurs}]]*/ [];
+
+        function formatFingerPosition(pos) {
+            if (!pos) return 'Doigt Inconnu';
+            const dict = {
+                'left_0': 'Main Gauche - Auriculaire',
+                'left_1': 'Main Gauche - Annulaire',
+                'left_2': 'Main Gauche - Majeur',
+                'left_3': 'Main Gauche - Index',
+                'right_0': 'Main Droite - Index',
+                'right_1': 'Main Droite - Majeur',
+                'right_2': 'Main Droite - Annulaire',
+                'right_3': 'Main Droite - Auriculaire',
+                'thumb_0': 'Pouce Gauche',
+                'thumb_1': 'Pouce Droit'
+            };
+            if (dict[pos]) return dict[pos];
+
+            // Repli générique propre
+            if (pos.startsWith('left_')) {
+                return 'Main Gauche (D' + (parseInt(pos.split('_')[1]) + 1) + ')';
+            } else if (pos.startsWith('right_')) {
+                return 'Main Droite (D' + (parseInt(pos.split('_')[1]) + 1) + ')';
+            } else if (pos.startsWith('thumb_')) {
+                return pos === 'thumb_0' ? 'Pouce Gauche' : 'Pouce Droit';
+            }
+            return pos;
+        }
+
+        function formatIrisPosition(pos) {
+            if (pos === 'left') return 'Œil Gauche';
+            if (pos === 'right') return 'Œil Droit';
+            return pos || 'Œil';
+        }
+
+        function openUserModal(userId) {
+            const user = usersData.find(u => u.id === userId);
+            if (!user) return;
+
+            const modalBody = document.getElementById('modalBody');
+            document.getElementById('modalTitle').textContent = "Fiche Biométrique #" + user.id + " - " + (user.nom || '') + " " + (user.prenom || '');
+
+            let faceHtml = user.facePhotoBase64 
+                ? `<img src="data:image/jpeg;base64,${user.facePhotoBase64}" class="profile-img-large" alt="Visage"/>`
+                : `<div class="profile-img-large" style="display:flex;align-items:center;justify-content:center;background:#eee;color:#888;">Pas de photo</div>`;
+
+            let fingersCards = '';
+            if (user.empreintes && user.empreintes.length > 0) {
+                user.empreintes.forEach(emp => {
+                    let labelFr = formatFingerPosition(emp.positionDoigt);
+                    let imgTag = emp.imageBase64 
+                        ? `<img src="data:image/bmp;base64,${emp.imageBase64}" alt="${labelFr}"/>`
+                        : `<div style="height:60px;display:flex;align-items:center;justify-content:center;color:#999;font-size:11px;">BMP N/A</div>`;
+                    
+                    let deviceTag = `<div class="tag-device">📟 ${emp.deviceModel ? emp.deviceModel : 'Non spécifié'}</div>`;
+                    let nfiqScore = emp.qualite;
+                    let nfiqClass = nfiqScore == null ? '' : (nfiqScore >= 60 ? 'score-bon' : 'score-mauvais');
+                    let nfiqLabel = nfiqScore != null ? nfiqScore : 'N/A';
+                    let nfiqTag = `<div class="tag-nfiq ${nfiqClass}">⭐ NFIQ: ${nfiqLabel}</div>`;
+                    let timeTag = `<div class="tag-time">⏱️ ${emp.tempsCaptureMs != null ? emp.tempsCaptureMs + ' ms' : 'N/A'}</div>`;
+
+                    fingersCards += `
+                        <div class="finger-card">
+                            ${imgTag}
+                            <div style="font-weight:bold;font-size:12px;margin:4px 0;color:#1a237e;">${labelFr}</div>
+                            ${deviceTag}
+                            ${nfiqTag}
+                            ${timeTag}
+                        </div>
+                    `;
+                });
+            } else {
+                fingersCards = '<p style="color:#777;">Aucune empreinte capturée pour cet utilisateur.</p>';
+            }
+
+            let irisCards = '';
+            if (user.iris && user.iris.length > 0) {
+                user.iris.forEach(ir => {
+                    let oeilFr = formatIrisPosition(ir.positionOeil);
+                    irisCards += `
+                        <div class="finger-card" style="min-width:140px;">
+                            <div style="font-size:28px;">👁️</div>
+                            <div style="font-weight:bold;font-size:13px;margin:5px 0;color:#1a237e;">${oeilFr}</div>
+                            <div class="tag-device">Iris ISO</div>
+                        </div>
+                    `;
+                });
+            } else {
+                irisCards = '<p style="color:#777;">Aucune capture d\'iris enregistrée.</p>';
+            }
+
+            modalBody.innerHTML = `
+                <div class="profile-section">
+                    ${faceHtml}
+                    <div class="info-grid">
+                        <div class="info-item"><strong>Nom</strong> ${user.nom || 'N/A'}</div>
+                        <div class="info-item"><strong>Prénom</strong> ${user.prenom || 'N/A'}</div>
+                        <div class="info-item"><strong>Sexe</strong> ${user.sexe || 'N/A'}</div>
+                        <div class="info-item"><strong>Date de Naissance</strong> ${user.dateNaissance || 'N/A'}</div>
+                        <div class="info-item"><strong>Localité</strong> ${user.localite || 'N/A'}</div>
+                        <div class="info-item"><strong>Date d'enrôlement</strong> ${user.dateCreation ? new Date(user.dateCreation).toLocaleString('fr-FR') : 'N/A'}</div>
+                        <div class="info-item"><strong>Nombre de doigts</strong> ${user.empreintes ? user.empreintes.length : 0} empreinte(s)</div>
+                        <div class="info-item"><strong>Iris</strong> ${user.iris ? user.iris.length : 0} capture(s)</div>
                     </div>
-                </td>
-                <td th:text="${u.iris.size()} + ' iris'"></td>
-                <td th:text="${u.dateCreation != null ? #temporals.format(u.dateCreation, 'dd/MM/yyyy HH:mm') : 'N/A'}"></td>
-            </tr>
-        </tbody>
-    </table>
+                </div>
+
+                <div class="section-title">🖐️ Empreintes Digitales (${user.empreintes ? user.empreintes.length : 0}) - Données de Banc d'Essai</div>
+                <div class="finger-cards">
+                    ${fingersCards}
+                </div>
+
+                <div class="section-title">👁️ Données Iris (${user.iris ? user.iris.length : 0})</div>
+                <div style="display:flex;gap:12px;margin-top:10px;">
+                    ${irisCards}
+                </div>
+            `;
+
+            document.getElementById('userModal').classList.add('active');
+        }
+
+        function closeUserModal() {
+            document.getElementById('userModal').classList.remove('active');
+        }
+
+        function closeUserModalOnOverlay(event) {
+            if (event.target.id === 'userModal') {
+                closeUserModal();
+            }
+        }
+        /*]]>*/
+    </script>
 </body>
 </html>
+

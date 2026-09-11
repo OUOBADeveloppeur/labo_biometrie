@@ -25,6 +25,12 @@ public class Empreinte {
     @Column(columnDefinition = "TEXT")
     private String imageBase64;
 
+    private String deviceModel; // Nom / modèle de l'équipement de capture
+
+    private Integer qualite; // Score de qualité de l'empreinte (ex: NFIQ ou score SDK)
+
+    private Long tempsCaptureMs; // Temps d'acquisition en millisecondes
+
     private LocalDateTime dateCapture;
 
     @ManyToOne(fetch = FetchType.LAZY)

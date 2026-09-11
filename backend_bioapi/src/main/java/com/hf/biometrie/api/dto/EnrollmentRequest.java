@@ -21,5 +21,8 @@ public class EnrollmentRequest {
         private String position; // "left_0", "right_3", "left_iris", etc.
         private String templateBase64;
         private String imageBase64; // Image de l'empreinte
+        private String deviceModel; // Nom de l'équipement
+        private Integer qualite; // Score de qualité
+        private Long tempsCaptureMs; // Temps de capture en millisecondes
     }
 }

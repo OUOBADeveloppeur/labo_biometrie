@@ -26,6 +26,7 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -76,10 +77,15 @@ public class MultimodalEnrollmentActivity extends AppCompatActivity {
     private String mFaceToken = "";
     private String mPhotoFaceBase64 = "";
     private final HashMap<String, String> mFingerImageMap = new HashMap<>();
+    private final HashMap<String, Integer> mFingerQualityMap = new HashMap<>();
+    private final HashMap<String, Long> mFingerDurationMap = new HashMap<>();
+    private int mSelectedNfiqLevel = 3; // Niveau NFIQ sélectionné (1 à 5)
+    private long mFpCaptureStartTime = 0;
 
     // UI
     private LinearLayout step1, step2, step3, step4;
-    private TextView stepTitle, tvFaceResult, irisHintTv, tvFpHint, tvFingerScore;
+    private TextView stepTitle, tvFaceResult, irisHintTv, tvFpHint, tvFingerScore, tvNfiqLevelLabel;
+    private SeekBar nfiqSeekBar;
     private EditText etUserName, etPrenom, etSex, etAge, etVille;
     private ImageView fpPreview;
     private FrameLayout irisFragmentContainer;
@@ -225,6 +231,31 @@ public class MultimodalEnrollmentActivity extends AppCompatActivity {
         fpPreview = findViewById(R.id.fpPreview);
         tvFpHint = findViewById(R.id.tvFpHint);
         tvFingerScore = findViewById(R.id.tvFingerScore);
+        tvNfiqLevelLabel = findViewById(R.id.tvNfiqLevelLabel);
+        nfiqSeekBar = findViewById(R.id.nfiqSeekBar);
+
+        if (nfiqSeekBar != null) {
+            // progress: 0 -> NFIQ 1, 1 -> NFIQ 2, 2 -> NFIQ 3, 3 -> NFIQ 4, 4 -> NFIQ 5
+            nfiqSeekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
+                @Override
+                public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
+                    mSelectedNfiqLevel = progress + 1;
+                    String label;
+                    switch (mSelectedNfiqLevel) {
+                        case 1: label = "Seuil NFIQ : 1 (Très strict - Parfait)"; break;
+                        case 2: label = "Seuil NFIQ : 2 (Strict - Très bon)"; break;
+                        case 3: label = "Seuil NFIQ : 3 (Recommandé / Standard)"; break;
+                        case 4: label = "Seuil NFIQ : 4 (Tolérant)"; break;
+                        case 5: default: label = "Seuil NFIQ : 5 (Très permissif - Doigts secs)"; break;
+                    }
+                    if (tvNfiqLevelLabel != null) {
+                        tvNfiqLevelLabel.setText(label);
+                    }
+                }
+                @Override public void onStartTrackingTouch(SeekBar seekBar) {}
+                @Override public void onStopTrackingTouch(SeekBar seekBar) {}
+            });
+        }
 
         Button btnCapture = findViewById(R.id.btnCaptureFp);
         btnCapture.setEnabled(false); // Initially disabled until init succeeds
@@ -288,10 +319,14 @@ public class MultimodalEnrollmentActivity extends AppCompatActivity {
     }
 
     private void updateFpUI(Button btn, boolean isFirst) {
+        Button btnNextToStep3 = findViewById(R.id.btnNextToStep3);
         if (mFpCaptureStep < 3) {
+            btn.setVisibility(View.VISIBLE);
+            if (btnNextToStep3 != null) btnNextToStep3.setVisibility(View.GONE);
             btn.setText("VOIR LA CAMERA");
             btn.setEnabled(true); // Réactiver le bouton pour la main suivante
-            tvFingerScore.setText("Score: N/A");
+            tvFingerScore.setTextColor(android.graphics.Color.parseColor("#1565C0")); // BLEU
+            tvFingerScore.setText("Appuyez sur 'VOIR LA CAMERA' pour commencer");
         }
 
         if (mFpCaptureStep == 0) {
@@ -301,10 +336,13 @@ public class MultimodalEnrollmentActivity extends AppCompatActivity {
         } else if (mFpCaptureStep == 2) {
             tvFpHint.setText("Étape 3 : Posez vos 2 POUCES");
         } else {
-            btn.setText("ALL DONE");
-            btn.setEnabled(false);
-            tvFpHint.setText("Empreintes 4-4-2 terminées avec succès !");
-            tvFingerScore.setText("Score: OK");
+            btn.setVisibility(View.GONE); // Plus besoin du bouton de capture
+            if (btnNextToStep3 != null) {
+                btnNextToStep3.setVisibility(View.VISIBLE); // Affiche le bouton suivant en évidence
+                btnNextToStep3.requestFocus();
+            }
+            tvFpHint.setText("✅ Empreintes 4-4-2 terminées avec succès !");
+            tvFingerScore.setText("10 doigts capturés");
         }
     }
 
@@ -322,14 +360,16 @@ public class MultimodalEnrollmentActivity extends AppCompatActivity {
             Button btnCapture = findViewById(R.id.btnCaptureFp);
             btnCapture.setText("ANALYSE EN COURS...");
             btnCapture.setEnabled(false);
-            tvFingerScore.setText("Analyse en cours... Gardez vos doigts posés.");
+            tvFingerScore.setText("Analyse en cours... Gardez vos doigts posés (Seuil NFIQ: " + mSelectedNfiqLevel + ")");
         });
+
+        mFpCaptureStartTime = System.currentTimeMillis();
 
         CaptureConfig captureConfig = new CaptureConfig.Builder()
                 .setEnumPrintType(currentType)
                 .setMissingFinger(new java.util.ArrayList<>())
                 .setAreaScore(CaptureConfig.DEFAULT_AREA_SCORE) // Lowered area
-                .setNfiqLevel(5) // 5 is the most permissive level for dry fingers
+                .setNfiqLevel(mSelectedNfiqLevel) // Niveau NFIQ dynamique (1 à 5)
                 .setPreviewCallBack((mxImage, mxError) -> {
                     if (mxImage != null) {
                         byte[] bmpData = new byte[mxImage.width * mxImage.height + 1078];
@@ -346,10 +386,20 @@ public class MultimodalEnrollmentActivity extends AppCompatActivity {
                                 }
                                 int avgNfiq = totalNfiq / mxImage.singleFingerImages.length;
                                 int avgArea = totalArea / mxImage.singleFingerImages.length;
-                                tvFingerScore.setText("Doigts détectés: " + mxImage.singleFingerImages.length
-                                        + "\nNFIQ: " + avgNfiq + " | Surface: " + avgArea);
+
+                                boolean isAcceptable = avgNfiq <= mSelectedNfiqLevel;
+                                if (isAcceptable) {
+                                    tvFingerScore.setTextColor(android.graphics.Color.parseColor("#2E7D32")); // VERT
+                                    tvFingerScore.setText("✔ Qualité Acceptable ! (NFIQ: " + avgNfiq + " / Seuil: " + mSelectedNfiqLevel + ")\n"
+                                            + mxImage.singleFingerImages.length + " doigts détectés | Surface: " + avgArea);
+                                } else {
+                                    tvFingerScore.setTextColor(android.graphics.Color.parseColor("#D32F2F")); // ROUGE
+                                    tvFingerScore.setText("✘ Qualité Insuffisante (NFIQ: " + avgNfiq + " > Seuil: " + mSelectedNfiqLevel + ")\n"
+                                            + "Appuyez plus fermement sur la vitre !");
+                                }
                             } else {
-                                tvFingerScore.setText("Analyse en cours... Appuyez bien vos 4 doigts sur la vitre !");
+                                tvFingerScore.setTextColor(android.graphics.Color.parseColor("#D32F2F")); // ROUGE
+                                tvFingerScore.setText("Posez bien vos doigts sur le capteur...");
                             }
                         });
                     }
@@ -357,6 +407,7 @@ public class MultimodalEnrollmentActivity extends AppCompatActivity {
 
         executor.execute(() -> {
             MxResult<MxImage> capture = mFingerApi.getImage(captureConfig);
+            long captureDuration = System.currentTimeMillis() - mFpCaptureStartTime;
 
             if (capture != null && capture.getData() != null && capture.getData().singleFingerImages != null) {
                 MxImage.RawInfo[] fingers = capture.getData().singleFingerImages;
@@ -384,10 +435,14 @@ public class MultimodalEnrollmentActivity extends AppCompatActivity {
                         if (bmpRes == 0) {
                             mFingerImageMap.put(positionKey, android.util.Base64.encodeToString(singleBmpData, android.util.Base64.DEFAULT));
                         }
+
+                        // Enregistrement des métriques techniques
+                        mFingerQualityMap.put(positionKey, fingers[i].nfiqLevel);
+                        mFingerDurationMap.put(positionKey, captureDuration);
                     }
                 }
                 runOnUiThread(() -> {
-                    Toast.makeText(this, "Capture " + (mFpCaptureStep + 1) + "/3 réussie !", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this, "Capture " + (mFpCaptureStep + 1) + "/3 réussie en " + captureDuration + " ms !", Toast.LENGTH_SHORT).show();
                     mFpCaptureStep++;
                     Button btnCapture = findViewById(R.id.btnCaptureFp);
                     updateFpUI(btnCapture, false);
@@ -406,39 +461,52 @@ public class MultimodalEnrollmentActivity extends AppCompatActivity {
 
     // --- IRIS ---
     private void setupStep3() {
-        findViewById(R.id.btnCaptureIris).setOnClickListener(v -> {
+        Button btnNextToStep4 = findViewById(R.id.btnNextToStep4);
+        Button btnCaptureIris = findViewById(R.id.btnCaptureIris);
+
+        btnCaptureIris.setOnClickListener(v -> {
             if (mIrisFragment != null) {
                 mIrisFragment.enroll(15000, new IrisFragment.EnrollCallback() {
                     @Override
                     public void onSuccess(byte[] template) {
                         mIrisLeft = template; // Simplified for demo
-                        Toast.makeText(MultimodalEnrollmentActivity.this, "Iris Captured!", Toast.LENGTH_SHORT).show();
-                        irisHintTv.setText("Iris Capture Success!");
+                        runOnUiThread(() -> {
+                            Toast.makeText(MultimodalEnrollmentActivity.this, "Iris capturé avec succès !", Toast.LENGTH_SHORT).show();
+                            irisHintTv.setText("✅ Iris validé !");
+                            btnCaptureIris.setVisibility(View.GONE);
+                            if (btnNextToStep4 != null) {
+                                btnNextToStep4.setVisibility(View.VISIBLE);
+                                btnNextToStep4.requestFocus();
+                            }
+                        });
                     }
 
                     @Override
                     public void onError(int errCode, String msg) {
-                        Toast.makeText(MultimodalEnrollmentActivity.this, "Iris Error: " + msg, Toast.LENGTH_SHORT)
-                                .show();
+                        runOnUiThread(() -> {
+                            Toast.makeText(MultimodalEnrollmentActivity.this, "Erreur Iris: " + msg, Toast.LENGTH_SHORT).show();
+                        });
                     }
 
                     @Override
                     public void onProcess(int progress, int state) {
-                        irisHintTv.setText("Iris Progress: " + progress + "%");
+                        runOnUiThread(() -> irisHintTv.setText("Progression Iris: " + progress + "%"));
                     }
                 });
             }
         });
-        findViewById(R.id.btnNextToStep4).setOnClickListener(v -> {
-            if (mIrisLeft == null) {
-                Toast.makeText(this, "Please capture Iris first", Toast.LENGTH_SHORT).show();
-                return;
-            }
-            if (mIrisFragment != null) {
-                mIrisFragment.closeCamera();
-            }
-            showStep(4);
-        });
+        if (btnNextToStep4 != null) {
+            btnNextToStep4.setOnClickListener(v -> {
+                if (mIrisLeft == null) {
+                    Toast.makeText(this, "Veuillez d'abord capturer l'Iris", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                if (mIrisFragment != null) {
+                    mIrisFragment.closeCamera();
+                }
+                showStep(4);
+            });
+        }
     }
 
     private void initIris() {
@@ -568,7 +636,12 @@ public class MultimodalEnrollmentActivity extends AppCompatActivity {
                             
                             runOnUiThread(() -> {
                                 mProgressDialog.dismiss();
-                                tvFaceResult.setText("Face Captured Successfully!");
+                                tvFaceResult.setText("✅ Visage capturé avec succès !");
+                                Button btnFinish = findViewById(R.id.btnFinishEnrollment);
+                                if (btnFinish != null) {
+                                    btnFinish.setVisibility(View.VISIBLE);
+                                    btnFinish.requestFocus();
+                                }
                             });
                             return;
                         }
@@ -632,6 +705,13 @@ public class MultimodalEnrollmentActivity extends AppCompatActivity {
                     if (mFingerImageMap.containsKey(key)) {
                         emp.put("imageBase64", mFingerImageMap.get(key));
                     }
+                    emp.put("deviceModel", "TR760"); // Nom du terminal testé
+                    if (mFingerQualityMap.containsKey(key)) {
+                        emp.put("qualite", mFingerQualityMap.get(key));
+                    }
+                    if (mFingerDurationMap.containsKey(key)) {
+                        emp.put("tempsCaptureMs", mFingerDurationMap.get(key));
+                    }
                     empreintesArray.put(emp);
                 }
                 json.put("empreintes", empreintesArray);
@@ -648,7 +728,7 @@ public class MultimodalEnrollmentActivity extends AppCompatActivity {
                 OkHttpClient client = new OkHttpClient();
                 RequestBody body = RequestBody.create(json.toString(), MediaType.parse("application/json"));
                 Request request = new Request.Builder()
-                        .url("http://192.168.11.48:8080/api/enroll") // ADRESSE IP DU PC
+                        .url("http://192.168.11.64:8080/api/enroll") // ADRESSE IP DU PC
                         .post(body)
                         .build();
 
