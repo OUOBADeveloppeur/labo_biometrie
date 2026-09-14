@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -83,5 +84,15 @@ public class EnrollmentService {
         }
 
         return utilisateurRepository.save(u);
+    }
+
+    @Transactional(readOnly = true)
+    public List<Utilisateur> findAllEnrollments() {
+        return utilisateurRepository.findAll();
+    }
+
+    @Transactional(readOnly = true)
+    public Optional<Utilisateur> findEnrollmentById(Long id) {
+        return utilisateurRepository.findById(id);
     }
 }

@@ -10,7 +10,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/enroll")
@@ -18,6 +20,18 @@ import java.util.Map;
 public class EnrollmentController {
 
     private final EnrollmentService enrollmentService;
+
+    @GetMapping
+    public ResponseEntity<List<Utilisateur>> getEnrollments() {
+        return ResponseEntity.ok(enrollmentService.findAllEnrollments());
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Utilisateur> getEnrollment(@PathVariable Long id) {
+        Optional<Utilisateur> utilisateur = enrollmentService.findEnrollmentById(id);
+        return utilisateur.map(ResponseEntity::ok)
+            .orElseGet(() -> ResponseEntity.notFound().build());
+    }
 
     @PostMapping
     public ResponseEntity<Map<String, Object>> enrollUser(@RequestBody EnrollmentRequest request) {
