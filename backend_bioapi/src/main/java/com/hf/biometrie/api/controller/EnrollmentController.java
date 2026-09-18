@@ -3,6 +3,7 @@ package com.hf.biometrie.api.controller;
 import com.hf.biometrie.api.dto.EnrollmentRequest;
 import com.hf.biometrie.api.entity.Utilisateur;
 import com.hf.biometrie.api.exception.DoublonException;
+import com.hf.biometrie.api.repository.UtilisateurRepository;
 import com.hf.biometrie.api.service.EnrollmentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -20,6 +21,28 @@ import java.util.Optional;
 public class EnrollmentController {
 
     private final EnrollmentService enrollmentService;
+    private final UtilisateurRepository utilisateurRepository;
+
+    // ── GET /api/enroll — Liste de tous les enrôlés ──
+    @GetMapping
+    public ResponseEntity<List<Utilisateur>> getAllEnrollments() {
+        List<Utilisateur> liste = utilisateurRepository.findAll();
+        return ResponseEntity.ok(liste);
+    }
+
+    // ── GET /api/enroll/{id} — Détail d'un enrôlé par ID ──
+    @GetMapping("/{id}")
+    public ResponseEntity<?> getEnrollmentById(@PathVariable Long id) {
+        Optional<Utilisateur> utilisateur = utilisateurRepository.findById(id);
+        if (utilisateur.isPresent()) {
+            return ResponseEntity.ok(utilisateur.get());
+        } else {
+            Map<String, Object> notFound = new LinkedHashMap<>();
+            notFound.put("status", "error");
+            notFound.put("message", "Aucun enrôlement trouvé avec l'id : " + id);
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).body(notFound);
+        }
+    }
 
     @GetMapping
     public ResponseEntity<List<Utilisateur>> getEnrollments() {

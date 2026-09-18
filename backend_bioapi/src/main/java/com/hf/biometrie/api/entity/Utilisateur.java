@@ -28,6 +28,11 @@ public class Utilisateur {
     @Column(columnDefinition = "TEXT")
     private String facePhotoBase64;
 
+    // ── Métadonnées de session (automatiques) ──
+    private String nomEquipement;            // Nom/modèle du terminal Android (Build.MODEL)
+    private Long tempsEnrolementTotalMs;     // Durée totale de la session en ms
+    private String statut;                   // COMPLET | PARTIEL | ECHEC
+
     private LocalDateTime dateCreation;
 
     @OneToMany(mappedBy = "utilisateur", cascade = CascadeType.ALL, orphanRemoval = true)

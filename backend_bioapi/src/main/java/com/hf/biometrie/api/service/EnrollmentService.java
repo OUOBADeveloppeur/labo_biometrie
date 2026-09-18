@@ -49,7 +49,7 @@ public class EnrollmentService {
             }
         }
 
-        // ── 3. Aucun doublon détecté → enregistrement normal ──
+        // ── 3. Aucun doublon → enregistrement normal ──
         Utilisateur u = new Utilisateur();
         u.setNom(request.getNom());
         u.setPrenom(request.getPrenom());
@@ -58,16 +58,33 @@ public class EnrollmentService {
         u.setLocalite(request.getLocalite());
         u.setFaceToken(request.getFaceToken());
         u.setFacePhotoBase64(request.getFacePhotoBase64());
+        // Métadonnées de session (automatiques)
+        u.setNomEquipement(request.getNomEquipement());
+        u.setTempsEnrolementTotalMs(request.getTempsEnrolementTotalMs());
+        u.setStatut(request.getStatut() != null ? request.getStatut() : "COMPLET");
 
         if (request.getEmpreintes() != null) {
             for (EnrollmentRequest.BiometricTemplate et : request.getEmpreintes()) {
                 Empreinte emp = new Empreinte();
+                // Identification
                 emp.setPositionDoigt(et.getPosition());
+                emp.setCategorieDoigt(et.getCategorieDoigt());
+                emp.setTypeCapture(et.getTypeCapture());
+                // Données biométriques
                 emp.setTemplateBase64(et.getTemplateBase64());
                 emp.setImageBase64(et.getImageBase64());
+                // Équipement
                 emp.setDeviceModel(et.getDeviceModel());
+                emp.setFirmwareVersion(et.getFirmwareVersion());
+                emp.setResolution(et.getResolution());
+                // Qualité
                 emp.setQualite(et.getQualite());
+                emp.setScoreNfiq(et.getScoreNfiq());
+                emp.setScoreQualiteSdk(et.getScoreQualiteSdk());
+                emp.setSurfaceContact(et.getSurfaceContact());
+                // Performance
                 emp.setTempsCaptureMs(et.getTempsCaptureMs());
+                emp.setNombreTentatives(et.getNombreTentatives());
                 emp.setUtilisateur(u);
                 u.getEmpreintes().add(emp);
             }

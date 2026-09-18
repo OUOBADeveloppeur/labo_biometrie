@@ -1,18 +1,11 @@
-# API Biométrie
+# Guide d''Integration - API Biometrie
 
-Guide d'intégration pour les appareils biométriques qui communiquent avec le serveur central d'enrôlement.
+> **Version :** 2.0 | **Date :** Septembre 2026
+> **Serveur :** http://192.168.11.156:8080
 
-## 1. Connexion au serveur
+---
 
-Le serveur est actuellement accessible sur le réseau local à l'adresse :
-
-```text
-http://192.168.11.156:8080
-```
-
-> Cette adresse est configurée en IP statique sur le serveur. Les appareils du réseau local peuvent donc utiliser cette adresse de manière durable.
-
-### Paramètres communs
+## 1. Vue d''ensemble des endpoints
 
 | Paramètre | Valeur |
 | :--- | :--- |
@@ -107,6 +100,20 @@ Content-Type: application/json
 ```
 
 ### Corps JSON
+| Methode | URL | Description |
+| :---: | :--- | :--- |
+| `POST` | `/api/enroll` | Enregistrer un nouvel enrolle (avec detection de doublon) |
+| `GET` | `/api/enroll` | Lister tous les enrolles |
+| `GET` | `/api/enroll/{id}` | Obtenir le detail d''un enrolle par son ID |
+
+---
+
+## 2. POST /api/enroll — Enregistrement
+
+**URL complète :** `http://192.168.11.156:8080/api/enroll`
+**En-tete :** `Content-Type: application/json`
+
+### Corps de la requete (JSON)
 
 ```json
 {
@@ -114,17 +121,30 @@ Content-Type: application/json
   "prenom": "Jean",
   "sexe": "M",
   "dateNaissance": "01/01/1990",
-  "localite": "Paris",
+  "localite": "Dakar",
   "faceToken": "abc123-token-facial",
   "facePhotoBase64": "/9j/4AAQSkZJRgABAQAA...",
+
+  "nomEquipement": "TR760-a3f2b1c0",
+  "tempsEnrolementTotalMs": 185000,
+  "statut": "COMPLET",
+
   "empreintes": [
     {
-      "position": "right_3",
+      "position": "left_0",
       "templateBase64": "Rk1SACAy...",
       "imageBase64": "Qk2GAAAA...",
       "deviceModel": "TR760",
       "qualite": 85,
       "tempsCaptureMs": 320
+    },
+    {
+      "position": "right_0",
+      "templateBase64": "Rk1SACAy...",
+      "imageBase64": "Qk2GAAAA...",
+      "deviceModel": "TR760",
+      "qualite": 72,
+      "tempsCaptureMs": 410
     }
   ],
   "iris": [
@@ -136,45 +156,70 @@ Content-Type: application/json
 }
 ```
 
-### Champs de la requête
+---
 
-#### Identité et visage
+### 2.2 Description détaillée des champs
 
-| Champ | Type | Description |
-| :--- | :--- | :--- |
-| `nom` | `String` | Nom de famille. |
-| `prenom` | `String` | Prénom. |
-| `sexe` | `String` | Sexe, par exemple `M` ou `F`. |
-| `dateNaissance` | `String` | Date au format `JJ/MM/AAAA`. |
-| `localite` | `String` | Ville ou région. |
-| `faceToken` | `String` | Identifiant facial fourni par le SDK. |
-| `facePhotoBase64` | `String` | Photo du visage en Base64, idéalement JPEG. |
+#### 👤 Données d'identité (racine de l'objet)
 
-#### `empreintes[]`
+| Champ | Type | Requis | Description |
+| :--- | :--- | :---: | :--- |
+| `nom` | `String` | ✅ | Nom de famille de l'individu. |
+| `prenom` | `String` | ✅ | Prénom de l'individu. |
+| `sexe` | `String` | ✅ | Sexe : `"M"` pour Masculin, `"F"` pour Féminin. |
+| `dateNaissance` | `String` | ✅ | Date de naissance au format `JJ/MM/AAAA`. Ex: `"15/03/1985"`. |
+| `localite` | `String` | ✅ | Localité, ville ou région de l'individu. |
+| `faceToken` | `String` | ⬜ | Identifiant unique (token) retourné par le module de reconnaissance faciale du SDK. Laisser vide si non disponible. |
+| `facePhotoBase64` | `String` | ⬜ | Photo du visage encodée en **Base64**. Format attendu : **JPEG**. |
 
-| Champ | Type | Description |
-| :--- | :--- | :--- |
-| `position` | `String` | Position du doigt, par exemple `right_3`. |
-| `templateBase64` | `String` | Gabarit de l'empreinte en Base64. |
-| `imageBase64` | `String` | Image de l'empreinte en Base64, si disponible. |
-| `deviceModel` | `String` | Modèle du capteur, par exemple `TR760`. |
-| `qualite` | `Integer` | Score de qualité fourni par le SDK. |
-| `tempsCaptureMs` | `Long` | Durée de capture en millisecondes. |
+---
 
-Positions usuelles : `left_0`, `left_1`, `left_2`, `left_3`, `thumb_0`, `right_0`, `right_1`, `right_2`, `right_3`, `thumb_1`.
+#### 🖐️ Empreintes digitales — Tableau `empreintes[]`
 
-#### `iris[]`
+Chaque objet du tableau représente **une empreinte d'un doigt**.
 
-| Champ | Type | Description |
-| :--- | :--- | :--- |
-| `position` | `String` | `left` pour l'oeil gauche ou `right` pour l'oeil droit. |
-| `templateBase64` | `String` | Gabarit de l'iris en Base64. |
+| Champ | Type | Requis | Description |
+| :--- | :--- | :---: | :--- |
+| `position` | `String` | ✅ | Identifiant du doigt capturé (voir tableau de référence ci-dessous). |
+| `templateBase64` | `String` | ✅ | Gabarit (template) ISO/IEC 19794-2 de l'empreinte encodé en **Base64**. |
+| `imageBase64` | `String` | ⬜ | Image brute de l'empreinte au format **BMP**, encodée en **Base64**. |
+| `deviceModel` | `String` | ✅ | **Nom ou référence du capteur** utilisé. Ex: `"TR760"`, `"HF4000"`, `"Futronic-FS88"`. Obligatoire pour les rapports comparatifs. |
+| `qualite` | `Integer` | ✅ | **Score de qualité** de l'empreinte retourné par le SDK (score NFIQ de `0` à `100`). Un score **≥ 60** est considéré acceptable. |
+| `tempsCaptureMs` | `Long` | ✅ | **Durée de la capture** en millisecondes, mesurée côté équipement. Indispensable pour les tests de performance. |
 
-Les champs qui se terminent par `Base64` doivent contenir du Base64 standard, sans saut de ligne.
+##### 📌 Référence des valeurs de `position` pour les doigts
 
-### Réponse en cas de succès
+| Valeur `position` | Doigt correspondant |
+| :--- | :--- |
+| `left_0` | Main Gauche — Auriculaire (5ème doigt) |
+| `left_1` | Main Gauche — Annulaire |
+| `left_2` | Main Gauche — Majeur |
+| `left_3` | Main Gauche — Index |
+| `thumb_0` | Main Gauche — Pouce |
+| `right_0` | Main Droite — Auriculaire (5ème doigt) |
+| `right_1` | Main Droite — Annulaire |
+| `right_2` | Main Droite — Majeur |
+| `right_3` | Main Droite — Index |
+| `thumb_1` | Main Droite — Pouce |
 
-Code HTTP `200 OK` :
+> 💡 Vous pouvez envoyer uniquement les doigts disponibles. Il n'est pas obligatoire d'envoyer les 10 doigts.
+
+---
+
+#### 👁️ Iris — Tableau `iris[]`
+
+Chaque objet représente **une capture d'iris** (œil gauche ou droit).
+
+| Champ | Type | Requis | Description |
+| :--- | :--- | :---: | :--- |
+| `position` | `String` | ✅ | Œil capturé : `"left"` (gauche) ou `"right"` (droit). |
+| `templateBase64` | `String` | ✅ | Gabarit de l'iris encodé en **Base64** (format ISO/IEC 19794-6 recommandé). |
+
+---
+
+## 3. ✅ Format de la Réponse
+
+### En cas de succès — `200 OK`
 
 ```json
 {
@@ -183,45 +228,28 @@ Code HTTP `200 OK` :
 }
 ```
 
-`id` est l'identifiant à utiliser ensuite avec `GET /api/enroll/{id}`.
+| Champ | Description |
+| :--- | :--- |
+| `status` | Vaut toujours `"success"` en cas de succès. |
+| `id` | L'identifiant unique de l'enrôlement créé en base de données. |
 
-### Réponse en cas de doublon
-
-Code HTTP `409 Conflict` lorsqu'un token facial ou une identité existe déjà :
-
-```json
-{
-  "status": "doublon",
-  "raison": "Token facial déjà enregistré",
-  "similarite": "100%",
-  "message": "Cette personne est déjà enregistrée dans le système.",
-  "existant": {
-    "id": 42,
-    "nom": "Dupont",
-    "prenom": "Jean",
-    "nbEmpreintes": 1,
-    "nbIris": 1
-  }
-}
-```
-
-### Réponse en cas d'erreur serveur
-
-Code HTTP `500 Internal Server Error` :
+### En cas d'erreur — `500 Internal Server Error`
 
 ```json
 {
   "status": "error",
-  "message": "Description de l'erreur"
+  "message": "Description détaillée de l'erreur..."
 }
 ```
 
 ## 4. Exemples complets
 
-### Envoi depuis un terminal
+## 4. 💻 Exemples d'Appel
+
+### Avec `curl` (ligne de commande)
 
 ```bash
-curl -X POST "http://192.168.11.156:8080/api/enroll" \
+curl -X POST "http://192.168.1.100:8080/api/enroll" \
   -H "Content-Type: application/json" \
   -d '{
     "nom": "Dupont",
@@ -229,35 +257,78 @@ curl -X POST "http://192.168.11.156:8080/api/enroll" \
     "sexe": "M",
     "dateNaissance": "01/01/1990",
     "localite": "Paris",
-    "empreintes": [],
-    "iris": []
+    "empreintes": [
+      {
+        "position": "right_3",
+        "templateBase64": "Rk1SACAy...",
+        "deviceModel": "MON_EQUIPEMENT",
+        "qualite": 80,
+        "tempsCaptureMs": 350
+      }
+    ]
   }'
 ```
 
-### Lecture depuis Python
+### Avec Java (OkHttp)
+
+```java
+OkHttpClient client = new OkHttpClient();
+
+String json = "{ \"nom\": \"Dupont\", \"prenom\": \"Jean\", ... }";
+
+RequestBody body = RequestBody.create(json, MediaType.get("application/json"));
+
+Request request = new Request.Builder()
+    .url("http://192.168.1.100:8080/api/enroll")
+    .post(body)
+    .build();
+
+Response response = client.newCall(request).execute();
+System.out.println(response.body().string());
+```
+
+### Avec Python (requests)
 
 ```python
 import requests
+import base64
 
-base_url = "http://192.168.11.156:8080/api/enroll"
+# Encoder une image en Base64
+with open("empreinte.bmp", "rb") as f:
+    image_b64 = base64.b64encode(f.read()).decode("utf-8")
 
-# Tous les enregistrements
-tous = requests.get(base_url, timeout=30)
-tous.raise_for_status()
-print(tous.json())
+payload = {
+    "nom": "Dupont",
+    "prenom": "Jean",
+    "sexe": "M",
+    "dateNaissance": "01/01/1990",
+    "localite": "Paris",
+    "empreintes": [
+        {
+            "position": "right_3",
+            "templateBase64": "Rk1SACAy...",
+            "imageBase64": image_b64,
+            "deviceModel": "MON_EQUIPEMENT",
+            "qualite": 80,
+            "tempsCaptureMs": 350
+        }
+    ]
+}
 
-# Un enregistrement
-enregistrement = requests.get(f"{base_url}/42", timeout=30)
-if enregistrement.status_code == 200:
-    print(enregistrement.json())
-elif enregistrement.status_code == 404:
-    print("Enregistrement introuvable")
+response = requests.post("http://192.168.1.100:8080/api/enroll", json=payload)
+print(response.json())
 ```
 
-## 5. Notes d'intégration
+---
 
-- Le serveur doit rester démarré et accessible sur le même réseau local que les appareils.
-- Le port `8080` doit être autorisé par le pare-feu du serveur.
-- Les champs `id`, `dateCreation`, `dateCapture` et les relations sont créés automatiquement par le serveur. Ils ne doivent pas être envoyés dans le POST.
-- Après un POST réussi, conservez l'`id` retourné pour récupérer l'enregistrement avec le GET individuel.
-- L'adresse `192.168.11.156` est configurée en IP statique sur l'interface Wi-Fi `wlo1`.
+## 5. ℹ️ Notes Importantes
+
+- **Encodage Base64 :** Tous les champs `*Base64` doivent être encodés en Base64 **standard** (RFC 4648), sans saut de ligne.
+- **Format de date :** Le champ `dateNaissance` doit respecter strictement le format `JJ/MM/AAAA`.
+- **Champs automatiques :** Les champs `id`, `date_creation`, `date_capture` et les clés étrangères sont gérés **automatiquement** par le serveur. Ne les envoyez pas.
+- **Champs de benchmarking :** `deviceModel`, `qualite` et `tempsCaptureMs` sont **obligatoires** car ils permettent de générer les rapports comparatifs de performance entre équipements.
+- **Nombre d'empreintes :** Vous pouvez envoyer de 1 à 10 empreintes par requête. Chaque doigt doit avoir sa propre entrée dans le tableau `empreintes[]`.
+
+---
+
+*Pour toute question technique, contactez l'équipe projet.*
