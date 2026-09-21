@@ -84,11 +84,12 @@
         }
         .finger-card img { width: 60px; height: 60px; object-fit: contain; margin-bottom: 6px; }
         .tag-device { font-size: 11px; background: #e3f2fd; color: #1565c0; padding: 2px 6px; border-radius: 4px; font-weight: 600; display: inline-block; margin: 2px 0; }
-        .tag-nfiq { font-size: 11px; padding: 2px 6px; border-radius: 4px; font-weight: 600; }
+        .tag-nfiq { font-size: 11px; padding: 2px 6px; border-radius: 4px; font-weight: 600; margin: 2px 0;}
         .tag-nfiq.score-bon { background: #e8f5e9; color: #2e7d32; }
         .tag-nfiq.score-moyen { background: #fff9c4; color: #f57f17; }
         .tag-nfiq.score-mauvais { background: #ffebee; color: #c62828; }
-        .tag-time { font-size: 11px; background: #fff3e0; color: #e65100; padding: 2px 6px; border-radius: 4px; font-weight: 600; }
+        .tag-time { font-size: 11px; background: #fff3e0; color: #e65100; padding: 2px 6px; border-radius: 4px; font-weight: 600; margin: 2px 0;}
+        .tag-bench { font-size: 11px; background: #f3e5f5; color: #6a1b9a; padding: 2px 6px; border-radius: 4px; font-weight: 600; display: inline-block; margin: 2px 0; }
     </style>
 </head>
 <body>
@@ -127,9 +128,9 @@
                         <span class="chip chip-fp" th:text="${u.empreintes.size()} + ' doigts'"></span>
                         <div th:if="${u.empreintes.size() > 0}" style="margin-top: 5px; display: flex; gap: 4px; flex-wrap: wrap;">
                             <span th:if="${u.empreintes[0].deviceModel != null}" class="tag-device" th:text="${u.empreintes[0].deviceModel}" style="font-size: 10px;"></span>
-                            <span th:if="${u.empreintes[0].qualite != null}"
-                                  th:class="'tag-nfiq ' + (${u.empreintes[0].qualite >= 60} ? 'score-bon' : 'score-mauvais')"
-                                  th:text="'NFIQ: ' + ${u.empreintes[0].qualite}"
+                            <span th:if="${u.empreintes[0].scoreNfiq != null}"
+                                  th:class="'tag-nfiq ' + (${u.empreintes[0].scoreNfiq <= 2} ? 'score-bon' : (${u.empreintes[0].scoreNfiq == 3} ? 'score-moyen' : 'score-mauvais'))"
+                                  th:text="'NFIQ: ' + ${u.empreintes[0].scoreNfiq}"
                                   style="font-size: 10px;"></span>
                         </div>
                     </td>
@@ -212,19 +213,35 @@
                         : `<div style="height:60px;display:flex;align-items:center;justify-content:center;color:#999;font-size:11px;">BMP N/A</div>`;
                     
                     let deviceTag = `<div class="tag-device">📟 ${emp.deviceModel ? emp.deviceModel : 'Non spécifié'}</div>`;
-                    let nfiqScore = emp.qualite;
-                    let nfiqClass = nfiqScore == null ? '' : (nfiqScore >= 60 ? 'score-bon' : 'score-mauvais');
+                    
+                    let nfiqScore = emp.scoreNfiq;
+                    let qualiteSdk = emp.scoreQualiteSdk;
+                    let nfiqClass = nfiqScore == null ? '' : (nfiqScore <= 2 ? 'score-bon' : (nfiqScore == 3 ? 'score-moyen' : 'score-mauvais'));
                     let nfiqLabel = nfiqScore != null ? nfiqScore : 'N/A';
-                    let nfiqTag = `<div class="tag-nfiq ${nfiqClass}">⭐ NFIQ: ${nfiqLabel}</div>`;
+                    let sdkLabel = qualiteSdk != null ? qualiteSdk + '%' : 'N/A';
+                    let nfiqTag = `<div class="tag-nfiq ${nfiqClass}">⭐ NFIQ: ${nfiqLabel} (SDK: ${sdkLabel})</div>`;
+                    
+                    let surface = emp.surfaceContact;
+                    let tentatives = emp.nombreTentatives;
+                    let benchTag = `<div class="tag-bench">🔄 Tentatives: ${tentatives || 'N/A'}<br/>📐 Surface: ${surface || 'N/A'}px</div>`;
+                    
                     let timeTag = `<div class="tag-time">⏱️ ${emp.tempsCaptureMs != null ? emp.tempsCaptureMs + ' ms' : 'N/A'}</div>`;
+                    
+                    let fwInfo = (emp.firmwareVersion || '') + (emp.resolution ? ' (' + emp.resolution + ' DPI)' : '');
+                    let fwTag = `<div style="font-size: 9px; color: #888; margin-top: 5px;">${fwInfo}</div>`;
+                    
+                    let captureTag = `<div style="font-size: 10px; font-weight: bold; color: #555;">${emp.typeCapture || ''}</div>`;
 
                     fingersCards += `
-                        <div class="finger-card">
+                        <div class="finger-card" style="min-width: 150px;">
                             ${imgTag}
                             <div style="font-weight:bold;font-size:12px;margin:4px 0;color:#1a237e;">${labelFr}</div>
+                            ${captureTag}
                             ${deviceTag}
                             ${nfiqTag}
+                            ${benchTag}
                             ${timeTag}
+                            ${fwTag}
                         </div>
                     `;
                 });
@@ -258,6 +275,12 @@
                         <div class="info-item"><strong>Date de Naissance</strong> ${user.dateNaissance || 'N/A'}</div>
                         <div class="info-item"><strong>Localité</strong> ${user.localite || 'N/A'}</div>
                         <div class="info-item"><strong>Date d'enrôlement</strong> ${user.dateCreation ? new Date(user.dateCreation).toLocaleString('fr-FR') : 'N/A'}</div>
+                        
+                        <!-- Nouveaux champs de session -->
+                        <div class="info-item"><strong>Équipement / Terminal</strong> ${user.nomEquipement || 'N/A'}</div>
+                        <div class="info-item"><strong>Temps Total Enrôlement</strong> ${user.tempsEnrolementTotalMs ? user.tempsEnrolementTotalMs + ' ms' : 'N/A'}</div>
+                        <div class="info-item"><strong>Statut</strong> ${user.statut || 'N/A'}</div>
+                        
                         <div class="info-item"><strong>Nombre de doigts</strong> ${user.empreintes ? user.empreintes.length : 0} empreinte(s)</div>
                         <div class="info-item"><strong>Iris</strong> ${user.iris ? user.iris.length : 0} capture(s)</div>
                     </div>
