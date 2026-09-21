@@ -44,18 +44,6 @@ public class EnrollmentController {
         }
     }
 
-    @GetMapping
-    public ResponseEntity<List<Utilisateur>> getEnrollments() {
-        return ResponseEntity.ok(enrollmentService.findAllEnrollments());
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<Utilisateur> getEnrollment(@PathVariable Long id) {
-        Optional<Utilisateur> utilisateur = enrollmentService.findEnrollmentById(id);
-        return utilisateur.map(ResponseEntity::ok)
-            .orElseGet(() -> ResponseEntity.notFound().build());
-    }
-
     @PostMapping
     public ResponseEntity<Map<String, Object>> enrollUser(@RequestBody EnrollmentRequest request) {
         try {
