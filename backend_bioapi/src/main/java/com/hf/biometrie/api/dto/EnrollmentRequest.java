@@ -7,6 +7,7 @@ import java.util.List;
 public class EnrollmentRequest {
 
     // ── Identité civile ──
+    private String uin;
     private String nom;
     private String prenom;
     private String sexe;

@@ -51,6 +51,7 @@ public class EnrollmentService {
 
         // ── 3. Aucun doublon → enregistrement normal ──
         Utilisateur u = new Utilisateur();
+        u.setUin(request.getUin());
         u.setNom(request.getNom());
         u.setPrenom(request.getPrenom());
         u.setSexe(request.getSexe());

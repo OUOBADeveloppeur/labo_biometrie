@@ -79,11 +79,11 @@ public class MultimodalEnrollmentActivity extends AppCompatActivity {
     private final HashMap<String, String> mFingerImageMap = new HashMap<>();
     private final HashMap<String, Integer> mFingerQualityMap = new HashMap<>();
     private final HashMap<String, Long> mFingerDurationMap = new HashMap<>();
-    private final HashMap<String, Integer> mFingerSurfaceMap = new HashMap<>();  // area SDK (pixels)
-    private final int[] mFpAttemptCount = new int[3];                            // tentatives : [0]=main G, [1]=main D, [2]=pouces
+    private final HashMap<String, Integer> mFingerSurfaceMap = new HashMap<>(); // area SDK (pixels)
+    private final int[] mFpAttemptCount = new int[3]; // tentatives : [0]=main G, [1]=main D, [2]=pouces
     private int mSelectedNfiqLevel = 3; // Niveau NFIQ sélectionné (1 à 5)
     private long mFpCaptureStartTime = 0;
-    private long mEnrollmentStartTime = 0;                                        // chrono session complète
+    private long mEnrollmentStartTime = 0; // chrono session complète
 
     // UI
     private LinearLayout step1, step2, step3, step4;
@@ -138,13 +138,11 @@ public class MultimodalEnrollmentActivity extends AppCompatActivity {
 
         // Power cycle to reset state in case of previous crash
         TR760Manager.getInstance().fingerprintPower(false);
-        try {
-            Thread.sleep(300);
-        } catch (Exception e) {
-        }
-        TR760Manager.getInstance().fingerprintPower(true);
+        getWindow().getDecorView().postDelayed(() -> {
+            TR760Manager.getInstance().fingerprintPower(true);
+            getWindow().getDecorView().postDelayed(this::initFingerprint, 2500);
+        }, 500);
 
-        initFingerprint();
         mEnrollmentStartTime = System.currentTimeMillis(); // Démarrage chrono session
         setupStep1();
         setupStep2();
@@ -245,18 +243,35 @@ public class MultimodalEnrollmentActivity extends AppCompatActivity {
                     mSelectedNfiqLevel = progress + 1;
                     String label;
                     switch (mSelectedNfiqLevel) {
-                        case 1: label = "Seuil NFIQ : 1 (Très strict - Parfait)"; break;
-                        case 2: label = "Seuil NFIQ : 2 (Strict - Très bon)"; break;
-                        case 3: label = "Seuil NFIQ : 3 (Recommandé / Standard)"; break;
-                        case 4: label = "Seuil NFIQ : 4 (Tolérant)"; break;
-                        case 5: default: label = "Seuil NFIQ : 5 (Très permissif - Doigts secs)"; break;
+                        case 1:
+                            label = "Seuil NFIQ : 1 (Très strict - Parfait)";
+                            break;
+                        case 2:
+                            label = "Seuil NFIQ : 2 (Strict - Très bon)";
+                            break;
+                        case 3:
+                            label = "Seuil NFIQ : 3 (Recommandé / Standard)";
+                            break;
+                        case 4:
+                            label = "Seuil NFIQ : 4 (Tolérant)";
+                            break;
+                        case 5:
+                        default:
+                            label = "Seuil NFIQ : 5 (Très permissif - Doigts secs)";
+                            break;
                     }
                     if (tvNfiqLevelLabel != null) {
                         tvNfiqLevelLabel.setText(label);
                     }
                 }
-                @Override public void onStartTrackingTouch(SeekBar seekBar) {}
-                @Override public void onStopTrackingTouch(SeekBar seekBar) {}
+
+                @Override
+                public void onStartTrackingTouch(SeekBar seekBar) {
+                }
+
+                @Override
+                public void onStopTrackingTouch(SeekBar seekBar) {
+                }
             });
         }
 
@@ -268,42 +283,18 @@ public class MultimodalEnrollmentActivity extends AppCompatActivity {
         btnCapture.setOnClickListener(v -> {
             if (mFingerApi == null)
                 return;
-            String text = btnCapture.getText().toString();
-            if (text.equals("VOIR LA CAMERA")) {
-                if (mFpCaptureStep == 0)
-                    btnCapture.setText("CAPTURER MAIN GAUCHE");
-                else if (mFpCaptureStep == 1)
-                    btnCapture.setText("CAPTURER MAIN DROITE");
-                else
-                    btnCapture.setText("CAPTURER POUCES");
 
-                new Thread(() -> {
-                    mFingerApi.video((mxImage, mxError) -> {
-                        if (mxImage != null) {
-                            byte[] bmpData = new byte[mxImage.width * mxImage.height + 1078];
-                            mFingerAlgAPI.convertRawToBMP(mxImage.data, mxImage.width, mxImage.height, bmpData);
-                            Bitmap bitmap = BitmapFactory.decodeByteArray(bmpData, 0, bmpData.length);
-                            runOnUiThread(() -> fpPreview.setImageBitmap(bitmap));
-                        } else {
-                            runOnUiThread(() -> Toast
-                                    .makeText(MultimodalEnrollmentActivity.this,
-                                            "Video error: " + (mxError != null ? mxError : "null"), Toast.LENGTH_SHORT)
-                                    .show());
-                        }
-                    });
-                }).start();
-            } else {
-                btnCapture.setText("PRÉPARATION...");
-                btnCapture.setEnabled(false);
-                mFingerApi.stopCapture();
+            btnCapture.setText("PRÉPARATION...");
+            btnCapture.setEnabled(false);
+            mFingerApi.stopCapture();
 
-                // Le capteur physique a besoin d'un instant pour fermer le flux vidéo
-                // avant de pouvoir ouvrir le flux de capture haute résolution.
-                v.postDelayed(() -> {
-                    btnCapture.setEnabled(true);
-                    captureFingerprint();
-                }, 800);
-            }
+            // Le capteur physique a besoin d'un instant pour fermer tout flux en cours
+            // avant de pouvoir ouvrir le flux de capture haute résolution (qui gère le
+            // streaming NFIQ).
+            v.postDelayed(() -> {
+                btnCapture.setEnabled(true);
+                captureFingerprint();
+            }, 800);
         });
 
         findViewById(R.id.btnNextToStep3).setOnClickListener(v -> {
@@ -325,11 +316,12 @@ public class MultimodalEnrollmentActivity extends AppCompatActivity {
         Button btnNextToStep3 = findViewById(R.id.btnNextToStep3);
         if (mFpCaptureStep < 3) {
             btn.setVisibility(View.VISIBLE);
-            if (btnNextToStep3 != null) btnNextToStep3.setVisibility(View.GONE);
-            btn.setText("VOIR LA CAMERA");
+            if (btnNextToStep3 != null)
+                btnNextToStep3.setVisibility(View.GONE);
+            btn.setText("LANCER LA CAPTURE");
             btn.setEnabled(true); // Réactiver le bouton pour la main suivante
             tvFingerScore.setTextColor(android.graphics.Color.parseColor("#1565C0")); // BLEU
-            tvFingerScore.setText("Appuyez sur 'VOIR LA CAMERA' pour commencer");
+            tvFingerScore.setText("Score: N/A - Appuyez sur LANCER pour commencer le streaming");
         }
 
         if (mFpCaptureStep == 0) {
@@ -363,7 +355,7 @@ public class MultimodalEnrollmentActivity extends AppCompatActivity {
             Button btnCapture = findViewById(R.id.btnCaptureFp);
             btnCapture.setText("ANALYSE EN COURS...");
             btnCapture.setEnabled(false);
-            tvFingerScore.setText("Analyse en cours... Gardez vos doigts posés (Seuil NFIQ: " + mSelectedNfiqLevel + ")");
+            tvFingerScore.setText("Score: N/A - Streaming NFIQ en cours... (Seuil: " + mSelectedNfiqLevel + ")");
         });
 
         mFpCaptureStartTime = System.currentTimeMillis();
@@ -394,16 +386,19 @@ public class MultimodalEnrollmentActivity extends AppCompatActivity {
                                 boolean isAcceptable = avgNfiq <= mSelectedNfiqLevel;
                                 if (isAcceptable) {
                                     tvFingerScore.setTextColor(android.graphics.Color.parseColor("#2E7D32")); // VERT
-                                    tvFingerScore.setText("✔ Qualité Acceptable ! (NFIQ: " + avgNfiq + " / Seuil: " + mSelectedNfiqLevel + ")\n"
-                                            + mxImage.singleFingerImages.length + " doigts détectés | Surface: " + avgArea);
+                                    tvFingerScore.setText("Score NFIQ: " + avgNfiq + " ✔ Qualité Acceptable ! (Seuil: "
+                                            + mSelectedNfiqLevel + ")\n"
+                                            + mxImage.singleFingerImages.length + " doigts détectés | Surface: "
+                                            + avgArea);
                                 } else {
                                     tvFingerScore.setTextColor(android.graphics.Color.parseColor("#D32F2F")); // ROUGE
-                                    tvFingerScore.setText("✘ Qualité Insuffisante (NFIQ: " + avgNfiq + " > Seuil: " + mSelectedNfiqLevel + ")\n"
+                                    tvFingerScore.setText("Score NFIQ: " + avgNfiq + " ✘ Insuffisant (Seuil: "
+                                            + mSelectedNfiqLevel + ")\n"
                                             + "Appuyez plus fermement sur la vitre !");
                                 }
                             } else {
                                 tvFingerScore.setTextColor(android.graphics.Color.parseColor("#D32F2F")); // ROUGE
-                                tvFingerScore.setText("Posez bien vos doigts sur le capteur...");
+                                tvFingerScore.setText("Score: N/A - Posez bien vos doigts sur le capteur...");
                             }
                         });
                     }
@@ -429,15 +424,17 @@ public class MultimodalEnrollmentActivity extends AppCompatActivity {
                             prefix = "right_";
                         else if (mFpCaptureStep == 2)
                             prefix = "thumb_";
-                        
+
                         String positionKey = prefix + i;
                         mFingerMap.put(positionKey, android.util.Base64.encodeToString(Arrays.copyOf(template, len[0]),
                                 android.util.Base64.DEFAULT));
-                                
+
                         byte[] singleBmpData = new byte[fingers[i].width * fingers[i].height + 1078];
-                        int bmpRes = mFingerAlgAPI.convertRawToBMP(fingers[i].imageData, fingers[i].width, fingers[i].height, singleBmpData);
+                        int bmpRes = mFingerAlgAPI.convertRawToBMP(fingers[i].imageData, fingers[i].width,
+                                fingers[i].height, singleBmpData);
                         if (bmpRes == 0) {
-                            mFingerImageMap.put(positionKey, android.util.Base64.encodeToString(singleBmpData, android.util.Base64.DEFAULT));
+                            mFingerImageMap.put(positionKey,
+                                    android.util.Base64.encodeToString(singleBmpData, android.util.Base64.DEFAULT));
                         }
 
                         // Enregistrement des métriques techniques
@@ -447,7 +444,9 @@ public class MultimodalEnrollmentActivity extends AppCompatActivity {
                     }
                 }
                 runOnUiThread(() -> {
-                    Toast.makeText(this, "Capture " + (mFpCaptureStep + 1) + "/3 réussie en " + captureDuration + " ms !", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(this,
+                            "Capture " + (mFpCaptureStep + 1) + "/3 réussie en " + captureDuration + " ms !",
+                            Toast.LENGTH_SHORT).show();
                     mFpCaptureStep++;
                     Button btnCapture = findViewById(R.id.btnCaptureFp);
                     updateFpUI(btnCapture, false);
@@ -476,7 +475,8 @@ public class MultimodalEnrollmentActivity extends AppCompatActivity {
                     public void onSuccess(byte[] template) {
                         mIrisLeft = template; // Simplified for demo
                         runOnUiThread(() -> {
-                            Toast.makeText(MultimodalEnrollmentActivity.this, "Iris capturé avec succès !", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(MultimodalEnrollmentActivity.this, "Iris capturé avec succès !",
+                                    Toast.LENGTH_SHORT).show();
                             irisHintTv.setText("✅ Iris validé !");
                             btnCaptureIris.setVisibility(View.GONE);
                             if (btnNextToStep4 != null) {
@@ -489,7 +489,8 @@ public class MultimodalEnrollmentActivity extends AppCompatActivity {
                     @Override
                     public void onError(int errCode, String msg) {
                         runOnUiThread(() -> {
-                            Toast.makeText(MultimodalEnrollmentActivity.this, "Erreur Iris: " + msg, Toast.LENGTH_SHORT).show();
+                            Toast.makeText(MultimodalEnrollmentActivity.this, "Erreur Iris: " + msg, Toast.LENGTH_SHORT)
+                                    .show();
                         });
                     }
 
@@ -626,7 +627,7 @@ public class MultimodalEnrollmentActivity extends AppCompatActivity {
                     if (result != null && result.result == 0) {
                         if (facePassHandler.bindGroup(group_name, result.faceToken)) {
                             mFaceToken = new String(result.faceToken, StandardCharsets.ISO_8859_1);
-                            
+
                             // Load image file to Base64
                             try {
                                 java.io.File file = new java.io.File(path);
@@ -634,11 +635,12 @@ public class MultimodalEnrollmentActivity extends AppCompatActivity {
                                 java.io.FileInputStream fis = new java.io.FileInputStream(file);
                                 fis.read(fileBytes);
                                 fis.close();
-                                mPhotoFaceBase64 = android.util.Base64.encodeToString(fileBytes, android.util.Base64.DEFAULT);
+                                mPhotoFaceBase64 = android.util.Base64.encodeToString(fileBytes,
+                                        android.util.Base64.DEFAULT);
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
-                            
+
                             runOnUiThread(() -> {
                                 mProgressDialog.dismiss();
                                 tvFaceResult.setText("✅ Visage capturé avec succès !");
@@ -663,6 +665,12 @@ public class MultimodalEnrollmentActivity extends AppCompatActivity {
     }
 
     // --- SAVE ---
+    private void resetEnrollment() {
+        Intent intent = getIntent();
+        finish();
+        startActivity(intent);
+    }
+
     private void saveAllData() {
         // 1. Sauvegarde locale (SQLite & EasyCache)
         User user = new User();
@@ -697,7 +705,9 @@ public class MultimodalEnrollmentActivity extends AppCompatActivity {
 
         executor.execute(() -> {
             try {
+                String uin = String.valueOf((long) (Math.random() * 900000000000L) + 100000000000L);
                 JSONObject json = new JSONObject();
+                json.put("uin", uin);
                 // — Identité civile —
                 json.put("nom", mUserName);
                 json.put("prenom", mPrenom);
@@ -707,7 +717,7 @@ public class MultimodalEnrollmentActivity extends AppCompatActivity {
                 json.put("faceToken", mFaceToken);
                 json.put("facePhotoBase64", mPhotoFaceBase64);
                 // — Métadonnées de session (auto) —
-                json.put("nomEquipement", nomEquipement);          // Build.MODEL du terminal
+                json.put("nomEquipement", nomEquipement); // Build.MODEL du terminal
                 json.put("tempsEnrolementTotalMs", tempsEnrolementMs); // durée session
                 json.put("statut", "COMPLET");
 
@@ -732,9 +742,9 @@ public class MultimodalEnrollmentActivity extends AppCompatActivity {
                     emp.put("firmwareVersion", "FAP60-SDK-2.x");
                     emp.put("resolution", 500); // 500 DPI standard FAP60
                     // Qualité (auto — vient du SDK)
-                    emp.put("qualite", nfiq);                   // NFIQ brut 1-5
-                    emp.put("scoreNfiq", nfiq);                 // NFIQ ISO explicite
-                    emp.put("scoreQualiteSdk", scoreQualite);   // Score normalisé 0-100
+                    emp.put("qualite", nfiq); // NFIQ brut 1-5
+                    emp.put("scoreNfiq", nfiq); // NFIQ ISO explicite
+                    emp.put("scoreQualiteSdk", scoreQualite); // Score normalisé 0-100
                     if (mFingerSurfaceMap.containsKey(key)) {
                         emp.put("surfaceContact", mFingerSurfaceMap.get(key)); // area pixels SDK
                     }
@@ -755,10 +765,14 @@ public class MultimodalEnrollmentActivity extends AppCompatActivity {
                 irisArray.put(irisObj);
                 json.put("iris", irisArray);
 
-                OkHttpClient client = new OkHttpClient();
+                OkHttpClient client = new OkHttpClient.Builder()
+                        .connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+                        .writeTimeout(120, java.util.concurrent.TimeUnit.SECONDS)
+                        .readTimeout(120, java.util.concurrent.TimeUnit.SECONDS)
+                        .build();
                 RequestBody body = RequestBody.create(json.toString(), MediaType.parse("application/json"));
                 Request request = new Request.Builder()
-                        .url("http://192.168.11.156:8080/api/enroll") // IP tablette
+                        .url("http://192.168.11.221:8080/api/enroll") // API distante
                         .post(body)
                         .build();
 
@@ -767,7 +781,8 @@ public class MultimodalEnrollmentActivity extends AppCompatActivity {
                     public void onFailure(@NonNull Call call, @NonNull IOException e) {
                         runOnUiThread(() -> {
                             mProgressDialog.dismiss();
-                            Toast.makeText(MultimodalEnrollmentActivity.this, "Erreur API: " + e.getMessage(),
+                            Toast.makeText(MultimodalEnrollmentActivity.this,
+                                    "Erreur API: " + e.getClass().getSimpleName() + " - " + e.getMessage(),
                                     Toast.LENGTH_LONG).show();
                             finish();
                         });
@@ -779,9 +794,13 @@ public class MultimodalEnrollmentActivity extends AppCompatActivity {
                         if (response.isSuccessful()) {
                             runOnUiThread(() -> {
                                 mProgressDialog.dismiss();
-                                Toast.makeText(MultimodalEnrollmentActivity.this,
-                                        "✅ Enrôlement réussi !", Toast.LENGTH_LONG).show();
-                                finish();
+                                new android.app.AlertDialog.Builder(MultimodalEnrollmentActivity.this)
+                                        .setTitle("Succès")
+                                        .setMessage("✅ Enrôlement réussi !\nVoulez-vous enrôler une autre personne ?")
+                                        .setPositiveButton("Oui, suivant", (dialog, which) -> resetEnrollment())
+                                        .setNegativeButton("Non, terminer", (dialog, which) -> finish())
+                                        .setCancelable(false)
+                                        .show();
                             });
                         } else if (response.code() == 409) {
                             // Doublon détecté — afficher les infos de la personne existante
@@ -795,9 +814,10 @@ public class MultimodalEnrollmentActivity extends AppCompatActivity {
                                 info.append("━━━ Personne existante ━━━\n");
                                 if (existant != null) {
                                     info.append("👤 ").append(existant.optString("nom", "-"))
-                                        .append(" ").append(existant.optString("prenom", "-")).append("\n");
+                                            .append(" ").append(existant.optString("prenom", "-")).append("\n");
                                     info.append("🎂 ").append(existant.optString("dateNaissance", "-")).append("\n");
-                                    info.append("🖐️ Empreintes : ").append(existant.optInt("nbEmpreintes", 0)).append("\n");
+                                    info.append("🖐️ Empreintes : ").append(existant.optInt("nbEmpreintes", 0))
+                                            .append("\n");
                                     info.append("👁️ Iris : ").append(existant.optInt("nbIris", 0)).append("\n");
                                     String d = existant.optString("dateEnrolement", "");
                                     if (!d.isEmpty() && !d.equals("null")) {
@@ -811,7 +831,7 @@ public class MultimodalEnrollmentActivity extends AppCompatActivity {
                                             .setTitle("🚫 Rejeté — Doublon")
                                             .setMessage(msg)
                                             .setPositiveButton("Annuler", (d2, w) -> finish())
-                                            .setNegativeButton("Recommencer", (d2, w) -> d2.dismiss())
+                                            .setNegativeButton("Recommencer", (d2, w) -> resetEnrollment())
                                             .setCancelable(false).show();
                                 });
                             } catch (Exception ex) {
@@ -825,9 +845,13 @@ public class MultimodalEnrollmentActivity extends AppCompatActivity {
                         } else {
                             runOnUiThread(() -> {
                                 mProgressDialog.dismiss();
-                                Toast.makeText(MultimodalEnrollmentActivity.this,
-                                        "❌ Erreur Serveur: " + response.code(), Toast.LENGTH_LONG).show();
-                                finish();
+                                new android.app.AlertDialog.Builder(MultimodalEnrollmentActivity.this)
+                                        .setTitle("Erreur")
+                                        .setMessage("❌ Erreur Serveur: " + response.code() + "\nVoulez-vous recommencer ?")
+                                        .setPositiveButton("Recommencer", (dialog, which) -> resetEnrollment())
+                                        .setNegativeButton("Annuler", (dialog, which) -> finish())
+                                        .setCancelable(false)
+                                        .show();
                             });
                         }
                     }
@@ -836,7 +860,8 @@ public class MultimodalEnrollmentActivity extends AppCompatActivity {
                 e.printStackTrace();
                 runOnUiThread(() -> {
                     mProgressDialog.dismiss();
-                    Toast.makeText(MultimodalEnrollmentActivity.this, "Erreur préparation JSON", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MultimodalEnrollmentActivity.this, "Erreur préparation JSON", Toast.LENGTH_SHORT)
+                            .show();
                     finish();
                 });
             }
@@ -861,38 +886,56 @@ public class MultimodalEnrollmentActivity extends AppCompatActivity {
         TR760Manager.getInstance().IrPower(false);
     }
 
-    // ── Helpers benchmarking (tout automatique, zéro saisie manuelle) ─────────────
+    // ── Helpers benchmarking (tout automatique, zéro saisie manuelle)
+    // ─────────────
 
     /** left_0 → AURICULAIRE_G, right_3 → INDEX_D, thumb_1 → POUCE_D... */
     private String getCategorieDoigt(String key) {
         switch (key) {
-            case "left_0":  return "AURICULAIRE_G";
-            case "left_1":  return "ANNULAIRE_G";
-            case "left_2":  return "MAJEUR_G";
-            case "left_3":  return "INDEX_G";
-            case "right_0": return "AURICULAIRE_D";
-            case "right_1": return "ANNULAIRE_D";
-            case "right_2": return "MAJEUR_D";
-            case "right_3": return "INDEX_D";
-            case "thumb_0": return "POUCE_G";
-            case "thumb_1": return "POUCE_D";
-            default:        return key.toUpperCase();
+            case "left_0":
+                return "AURICULAIRE_G";
+            case "left_1":
+                return "ANNULAIRE_G";
+            case "left_2":
+                return "MAJEUR_G";
+            case "left_3":
+                return "INDEX_G";
+            case "right_0":
+                return "AURICULAIRE_D";
+            case "right_1":
+                return "ANNULAIRE_D";
+            case "right_2":
+                return "MAJEUR_D";
+            case "right_3":
+                return "INDEX_D";
+            case "thumb_0":
+                return "POUCE_G";
+            case "thumb_1":
+                return "POUCE_D";
+            default:
+                return key.toUpperCase();
         }
     }
 
     /** left_ → SLAP_GAUCHE, right_ → SLAP_DROIT, thumb_ → POUCES */
     private String getTypeCaptureForKey(String key) {
-        if (key.startsWith("left_"))  return "SLAP_GAUCHE";
-        if (key.startsWith("right_")) return "SLAP_DROIT";
-        if (key.startsWith("thumb_")) return "POUCES";
+        if (key.startsWith("left_"))
+            return "SLAP_GAUCHE";
+        if (key.startsWith("right_"))
+            return "SLAP_DROIT";
+        if (key.startsWith("thumb_"))
+            return "POUCES";
         return "INCONNU";
     }
 
     /** Nombre de tentatives mesuré automatiquement par étape de capture */
     private int getNombreTentativesForKey(String key) {
-        if (key.startsWith("left_"))  return mFpAttemptCount[0];
-        if (key.startsWith("right_")) return mFpAttemptCount[1];
-        if (key.startsWith("thumb_")) return mFpAttemptCount[2];
+        if (key.startsWith("left_"))
+            return mFpAttemptCount[0];
+        if (key.startsWith("right_"))
+            return mFpAttemptCount[1];
+        if (key.startsWith("thumb_"))
+            return mFpAttemptCount[2];
         return 1;
     }
 }
