@@ -51,7 +51,13 @@ public class EnrollmentService {
 
         // ── 3. Aucun doublon → enregistrement normal ──
         Utilisateur u = new Utilisateur();
-        u.setUin(request.getUin());
+        if (request.getUin() == null || request.getUin().trim().isEmpty()) {
+            // Génère un nombre aléatoire à 12 chiffres
+            long random12Digit = java.util.concurrent.ThreadLocalRandom.current().nextLong(100_000_000_000L, 1_000_000_000_000L);
+            u.setUin(String.valueOf(random12Digit));
+        } else {
+            u.setUin(request.getUin());
+        }
         u.setNom(request.getNom());
         u.setPrenom(request.getPrenom());
         u.setSexe(request.getSexe());
