@@ -89,7 +89,8 @@ public class MultimodalEnrollmentActivity extends AppCompatActivity {
     private LinearLayout step1, step2, step3, step4;
     private TextView stepTitle, tvFaceResult, irisHintTv, tvFpHint, tvFingerScore, tvNfiqLevelLabel;
     private SeekBar nfiqSeekBar;
-    private EditText etUserName, etPrenom, etSex, etAge, etVille;
+    private EditText etUserName, etPrenom, etAge, etVille;
+    private android.widget.Spinner spinnerSex;
     private ImageView fpPreview;
     private FrameLayout irisFragmentContainer;
 
@@ -128,8 +129,20 @@ public class MultimodalEnrollmentActivity extends AppCompatActivity {
 
         etUserName = findViewById(R.id.etUserName);
         etPrenom = findViewById(R.id.etPrenom);
-        etSex = findViewById(R.id.etSex);
+        spinnerSex = findViewById(R.id.spinnerSex);
+        android.widget.ArrayAdapter<String> sexAdapter = new android.widget.ArrayAdapter<>(this, android.R.layout.simple_spinner_item, new String[]{"M", "F"});
+        sexAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerSex.setAdapter(sexAdapter);
+
         etAge = findViewById(R.id.etAge);
+        etAge.setOnClickListener(v -> {
+            java.util.Calendar cal = java.util.Calendar.getInstance();
+            new android.app.DatePickerDialog(MultimodalEnrollmentActivity.this,
+                    (view, year, month, dayOfMonth) -> {
+                        String date = String.format("%02d/%02d/%d", dayOfMonth, month + 1, year);
+                        etAge.setText(date);
+                    }, cal.get(java.util.Calendar.YEAR), cal.get(java.util.Calendar.MONTH), cal.get(java.util.Calendar.DAY_OF_MONTH)).show();
+        });
         etVille = findViewById(R.id.etVille);
         fpPreview = findViewById(R.id.fpPreview);
         irisFragmentContainer = findViewById(R.id.irisFragmentContainer);
@@ -140,8 +153,8 @@ public class MultimodalEnrollmentActivity extends AppCompatActivity {
         TR760Manager.getInstance().fingerprintPower(false);
         getWindow().getDecorView().postDelayed(() -> {
             TR760Manager.getInstance().fingerprintPower(true);
-            getWindow().getDecorView().postDelayed(this::initFingerprint, 2500);
-        }, 500);
+            getWindow().getDecorView().postDelayed(this::initFingerprint, 1200);
+        }, 150);
 
         mEnrollmentStartTime = System.currentTimeMillis(); // Démarrage chrono session
         setupStep1();
@@ -187,7 +200,7 @@ public class MultimodalEnrollmentActivity extends AppCompatActivity {
             }
             mUserName = name;
             mPrenom = etPrenom.getText().toString().trim();
-            mSex = etSex.getText().toString().trim();
+            mSex = spinnerSex.getSelectedItem().toString();
             mDateNaissance = etAge.getText().toString().trim();
             mLocalite = etVille.getText().toString().trim();
             showStep(2);
@@ -365,7 +378,7 @@ public class MultimodalEnrollmentActivity extends AppCompatActivity {
                 .setEnumPrintType(currentType)
                 .setMissingFinger(new java.util.ArrayList<>())
                 .setAreaScore(CaptureConfig.DEFAULT_AREA_SCORE) // Lowered area
-                .setNfiqLevel(mSelectedNfiqLevel) // Niveau NFIQ dynamique (1 à 5)
+                .setNfiqLevel(2) // Niveau NFIQ fixé à 2 pour garantir >= 75% (NFIQ 2 équivaut à 80%)
                 .setPreviewCallBack((mxImage, mxError) -> {
                     if (mxImage != null) {
                         byte[] bmpData = new byte[mxImage.width * mxImage.height + 1078];
@@ -374,31 +387,39 @@ public class MultimodalEnrollmentActivity extends AppCompatActivity {
                         runOnUiThread(() -> {
                             fpPreview.setImageBitmap(bitmap);
                             if (mxImage.singleFingerImages != null && mxImage.singleFingerImages.length > 0) {
-                                int totalNfiq = 0;
+                                int totalScore = 0;
                                 int totalArea = 0;
                                 for (MxImage.RawInfo info : mxImage.singleFingerImages) {
-                                    totalNfiq += info.nfiqLevel;
+                                    int s = 15; // NFIQ 5 par défaut (0-29%)
+                                    if (info.nfiqLevel == 1) s = 95; // 90-100%
+                                    else if (info.nfiqLevel == 2) s = 80; // 70-89%
+                                    else if (info.nfiqLevel == 3) s = 60; // 50-69%
+                                    else if (info.nfiqLevel == 4) s = 40; // 30-49%
+                                    totalScore += s;
                                     totalArea += info.area;
                                 }
-                                int avgNfiq = totalNfiq / mxImage.singleFingerImages.length;
+                                int avgScore = totalScore / mxImage.singleFingerImages.length;
                                 int avgArea = totalArea / mxImage.singleFingerImages.length;
 
-                                boolean isAcceptable = avgNfiq <= mSelectedNfiqLevel;
-                                if (isAcceptable) {
-                                    tvFingerScore.setTextColor(android.graphics.Color.parseColor("#2E7D32")); // VERT
-                                    tvFingerScore.setText("Score NFIQ: " + avgNfiq + " ✔ Qualité Acceptable ! (Seuil: "
-                                            + mSelectedNfiqLevel + ")\n"
-                                            + mxImage.singleFingerImages.length + " doigts détectés | Surface: "
-                                            + avgArea);
+                                String colorCode = "#B71C1C"; // Rouge très foncé (Très faible)
+                                String textQualite = "Très faible";
+                                if (avgScore >= 90) { colorCode = "#2E7D32"; textQualite = "Excellente (NFIQ 1)"; } // Vert
+                                else if (avgScore >= 70) { colorCode = "#1565C0"; textQualite = "Bonne (NFIQ 2)"; } // Bleu
+                                else if (avgScore >= 50) { colorCode = "#F57F17"; textQualite = "Moyenne (NFIQ 3)"; } // Orange
+                                else if (avgScore >= 30) { colorCode = "#C62828"; textQualite = "Faible (NFIQ 4)"; } // Rouge clair
+
+                                if (avgScore >= 75) {
+                                    tvFingerScore.setTextColor(android.graphics.Color.parseColor(colorCode));
+                                    tvFingerScore.setText("Score: " + avgScore + "% ✔ Qualité " + textQualite + "\n"
+                                            + mxImage.singleFingerImages.length + " doigts détectés | Surface: " + avgArea);
                                 } else {
-                                    tvFingerScore.setTextColor(android.graphics.Color.parseColor("#D32F2F")); // ROUGE
-                                    tvFingerScore.setText("Score NFIQ: " + avgNfiq + " ✘ Insuffisant (Seuil: "
-                                            + mSelectedNfiqLevel + ")\n"
+                                    tvFingerScore.setTextColor(android.graphics.Color.parseColor(colorCode));
+                                    tvFingerScore.setText("Score: " + avgScore + "% ✘ " + textQualite + " (< 75%)\n"
                                             + "Appuyez plus fermement sur la vitre !");
                                 }
                             } else {
-                                tvFingerScore.setTextColor(android.graphics.Color.parseColor("#D32F2F")); // ROUGE
-                                tvFingerScore.setText("Score: N/A - Posez bien vos doigts sur le capteur...");
+                                tvFingerScore.setTextColor(android.graphics.Color.parseColor("#D32F2F"));
+                                tvFingerScore.setText("Score: 0% - Posez bien vos doigts sur le capteur...");
                             }
                         });
                     }
