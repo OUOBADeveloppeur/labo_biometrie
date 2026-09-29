@@ -90,6 +90,10 @@
         .tag-nfiq.score-mauvais { background: #ffebee; color: #c62828; }
         .tag-time { font-size: 11px; background: #fff3e0; color: #e65100; padding: 2px 6px; border-radius: 4px; font-weight: 600; margin: 2px 0;}
         .tag-bench { font-size: 11px; background: #f3e5f5; color: #6a1b9a; padding: 2px 6px; border-radius: 4px; font-weight: 600; display: inline-block; margin: 2px 0; }
+        .btn-action { padding: 6px 10px; border: none; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; color: white; margin-right: 5px; transition: opacity 0.2s; }
+        .btn-action:hover { opacity: 0.8; }
+        .btn-edit { background-color: #f39c12; }
+        .btn-delete { background-color: #e74c3c; }
     </style>
 </head>
 <body>
@@ -112,6 +116,7 @@
                     <th>Empreintes</th>
                     <th>Iris</th>
                     <th>Date d'enrôlement</th>
+                    <th>Action</th>
                 </tr>
             </thead>
             <tbody>
@@ -140,6 +145,10 @@
                         <span class="chip chip-iris" th:text="${u.iris.size()} + ' iris'"></span>
                     </td>
                     <td th:text="${u.dateCreation != null ? #temporals.format(u.dateCreation, 'dd/MM/yyyy HH:mm') : 'N/A'}" style="color: #666; font-size: 13px;"></td>
+                    <td style="white-space: nowrap;" onclick="event.stopPropagation();">
+                        <button class="btn-action btn-edit" th:onclick="'editUser(' + ${u.id} + ')'">Modifier</button>
+                        <button class="btn-action btn-delete" th:onclick="'deleteUser(' + ${u.id} + ')'">Supprimer</button>
+                    </td>
                 </tr>
             </tbody>
         </table>
@@ -154,6 +163,42 @@
             </div>
             <div class="modal-body" id="modalBody">
                 <!-- Rempli dynamiquement en JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL D'ÉDITION -->
+    <div id="editModal" class="modal-overlay" onclick="closeEditModalOnOverlay(event)">
+        <div class="modal-content" style="max-width: 500px;">
+            <div class="modal-header">
+                <h2>Modifier l'Enrôlement</h2>
+                <button class="close-btn" onclick="closeEditModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="editForm">
+                    <input type="hidden" id="editId">
+                    <div style="margin-bottom: 12px;">
+                        <label style="font-weight:bold;font-size:13px;color:#555;">Nom:</label><br>
+                        <input type="text" id="editNom" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                    </div>
+                    <div style="margin-bottom: 12px;">
+                        <label style="font-weight:bold;font-size:13px;color:#555;">Prénom:</label><br>
+                        <input type="text" id="editPrenom" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                    </div>
+                    <div style="margin-bottom: 12px;">
+                        <label style="font-weight:bold;font-size:13px;color:#555;">Sexe:</label><br>
+                        <input type="text" id="editSexe" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                    </div>
+                    <div style="margin-bottom: 12px;">
+                        <label style="font-weight:bold;font-size:13px;color:#555;">Date Naissance:</label><br>
+                        <input type="text" id="editDateNaissance" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                    </div>
+                    <div style="margin-bottom: 12px;">
+                        <label style="font-weight:bold;font-size:13px;color:#555;">Localité:</label><br>
+                        <input type="text" id="editLocalite" style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px;">
+                    </div>
+                    <button type="button" onclick="submitEditForm()" style="background:#1a237e; color:white; padding:10px 20px; border:none; border-radius:4px; cursor:pointer; width:100%; font-weight:bold; margin-top: 10px;">Enregistrer les modifications</button>
+                </form>
             </div>
         </div>
     </div>
@@ -310,6 +355,70 @@
         function closeUserModalOnOverlay(event) {
             if (event.target.id === 'userModal') {
                 closeUserModal();
+            }
+        }
+
+        function editUser(userId) {
+            const user = usersData.find(u => u.id === userId);
+            if (!user) return;
+            document.getElementById('editId').value = user.id;
+            document.getElementById('editNom').value = user.nom || '';
+            document.getElementById('editPrenom').value = user.prenom || '';
+            document.getElementById('editSexe').value = user.sexe || '';
+            document.getElementById('editDateNaissance').value = user.dateNaissance || '';
+            document.getElementById('editLocalite').value = user.localite || '';
+            document.getElementById('editModal').classList.add('active');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.remove('active');
+        }
+
+        function closeEditModalOnOverlay(event) {
+            if (event.target.id === 'editModal') {
+                closeEditModal();
+            }
+        }
+
+        function submitEditForm() {
+            const userId = document.getElementById('editId').value;
+            const data = {
+                nom: document.getElementById('editNom').value,
+                prenom: document.getElementById('editPrenom').value,
+                sexe: document.getElementById('editSexe').value,
+                dateNaissance: document.getElementById('editDateNaissance').value,
+                localite: document.getElementById('editLocalite').value
+            };
+            fetch('/api/enroll/' + userId, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            }).then(res => {
+                if(res.ok) {
+                    window.location.reload();
+                } else {
+                    alert('Erreur lors de la modification');
+                }
+            }).catch(err => {
+                console.error(err);
+                alert('Erreur réseau');
+            });
+        }
+
+        function deleteUser(userId) {
+            if (confirm('Voulez-vous vraiment supprimer cet enregistrement (ID: ' + userId + ') ? Cette action est irréversible.')) {
+                fetch('/api/enroll/' + userId, {
+                    method: 'DELETE'
+                }).then(response => {
+                    if (response.ok) {
+                        window.location.reload();
+                    } else {
+                        alert('Erreur lors de la suppression.');
+                    }
+                }).catch(err => {
+                    console.error(err);
+                    alert('Erreur réseau lors de la suppression.');
+                });
             }
         }
         /*]]>*/

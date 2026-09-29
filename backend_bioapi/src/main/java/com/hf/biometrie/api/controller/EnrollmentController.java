@@ -87,5 +87,32 @@ public class EnrollmentController {
             return ResponseEntity.internalServerError().body(error);
         }
     }
+
+    // ── DELETE /api/enroll/{id} — Supprimer un enrôlé ──
+    @DeleteMapping("/{id}")
+    public ResponseEntity<?> deleteEnrollment(@PathVariable Long id) {
+        if (!utilisateurRepository.existsById(id)) {
+            return ResponseEntity.notFound().build();
+        }
+        utilisateurRepository.deleteById(id);
+        return ResponseEntity.ok().build();
+    }
+
+    // ── PUT /api/enroll/{id} — Modifier un enrôlé (infos civiles) ──
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateEnrollment(@PathVariable Long id, @RequestBody EnrollmentRequest request) {
+        Optional<Utilisateur> optUser = utilisateurRepository.findById(id);
+        if (!optUser.isPresent()) {
+            return ResponseEntity.notFound().build();
+        }
+        Utilisateur user = optUser.get();
+        if (request.getNom() != null) user.setNom(request.getNom());
+        if (request.getPrenom() != null) user.setPrenom(request.getPrenom());
+        if (request.getSexe() != null) user.setSexe(request.getSexe());
+        if (request.getDateNaissance() != null) user.setDateNaissance(request.getDateNaissance());
+        if (request.getLocalite() != null) user.setLocalite(request.getLocalite());
+        utilisateurRepository.save(user);
+        return ResponseEntity.ok(user);
+    }
 }
 
