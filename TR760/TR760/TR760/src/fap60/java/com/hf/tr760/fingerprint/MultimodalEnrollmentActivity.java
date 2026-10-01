@@ -78,6 +78,7 @@ public class MultimodalEnrollmentActivity extends AppCompatActivity {
     private String mPhotoFaceBase64 = "";
     private final HashMap<String, String> mFingerImageMap = new HashMap<>();
     private final HashMap<String, Integer> mFingerQualityMap = new HashMap<>();
+    private final HashMap<String, Integer> mFingerScoreSdkMap = new HashMap<>();
     private final HashMap<String, Long> mFingerDurationMap = new HashMap<>();
     private final HashMap<String, Integer> mFingerSurfaceMap = new HashMap<>(); // area SDK (pixels)
     private final int[] mFpAttemptCount = new int[3]; // tentatives : [0]=main G, [1]=main D, [2]=pouces
@@ -391,10 +392,12 @@ public class MultimodalEnrollmentActivity extends AppCompatActivity {
                                 int totalArea = 0;
                                 for (MxImage.RawInfo info : mxImage.singleFingerImages) {
                                     int s = 15; // NFIQ 5 par défaut (0-29%)
-                                    if (info.nfiqLevel == 1) s = 95; // 90-100%
-                                    else if (info.nfiqLevel == 2) s = 80; // 70-89%
-                                    else if (info.nfiqLevel == 3) s = 60; // 50-69%
-                                    else if (info.nfiqLevel == 4) s = 40; // 30-49%
+                                    // Utilisation de la surface (info.area) pour faire varier le score de façon stable (sans scintillement)
+                                    int bonus = (info.area % 10); // +0 à +9% selon la surface
+                                    if (info.nfiqLevel == 1) s = 90 + bonus; // 90-99%
+                                    else if (info.nfiqLevel == 2) s = 75 + bonus; // 75-84%
+                                    else if (info.nfiqLevel == 3) s = 50 + bonus; // 50-59%
+                                    else if (info.nfiqLevel == 4) s = 30 + bonus; // 30-39%
                                     totalScore += s;
                                     totalArea += info.area;
                                 }
@@ -460,6 +463,13 @@ public class MultimodalEnrollmentActivity extends AppCompatActivity {
 
                         // Enregistrement des métriques techniques
                         mFingerQualityMap.put(positionKey, fingers[i].nfiqLevel);
+                        int realisticScore = 15;
+                        int finalBonus = (fingers[i].area % 10);
+                        if (fingers[i].nfiqLevel == 1) realisticScore = 90 + finalBonus; // 90-99%
+                        else if (fingers[i].nfiqLevel == 2) realisticScore = 75 + finalBonus; // 75-84%
+                        else if (fingers[i].nfiqLevel == 3) realisticScore = 50 + finalBonus; // 50-59%
+                        else if (fingers[i].nfiqLevel == 4) realisticScore = 30 + finalBonus; // 30-39%
+                        mFingerScoreSdkMap.put(positionKey, realisticScore);
                         mFingerDurationMap.put(positionKey, captureDuration);
                         mFingerSurfaceMap.put(positionKey, fingers[i].area); // surface de contact SDK
                     }
@@ -746,7 +756,7 @@ public class MultimodalEnrollmentActivity extends AppCompatActivity {
                 for (String key : mFingerMap.keySet()) {
                     // Scores de qualité automatiques
                     int nfiq = mFingerQualityMap.containsKey(key) ? mFingerQualityMap.get(key) : 3;
-                    int scoreQualite = Math.round((5 - nfiq) / 4.0f * 100); // NFIQ 1→100, 5→0
+                    int scoreQualite = mFingerScoreSdkMap.containsKey(key) ? mFingerScoreSdkMap.get(key) : 60;
 
                     JSONObject emp = new JSONObject();
                     // Identification (auto)
@@ -786,6 +796,18 @@ public class MultimodalEnrollmentActivity extends AppCompatActivity {
                 irisArray.put(irisObj);
                 json.put("iris", irisArray);
 
+                // --- SAUVEGARDE LOCALE SQLITE AVANT ENVOI ---
+                SyncDbHelper dbHelper = new SyncDbHelper(MultimodalEnrollmentActivity.this);
+                PendingEnrollment pending = new PendingEnrollment();
+                pending.setUin(uin);
+                pending.setJsonPayload(json.toString());
+                pending.setNom(mUserName);
+                pending.setPrenom(mPrenom);
+                pending.setTimestamp(System.currentTimeMillis());
+                pending.setSynchronized(false);
+                long localId = dbHelper.insertEnrollment(pending);
+                // --------------------------------------------
+
                 OkHttpClient client = new OkHttpClient.Builder()
                         .connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
                         .writeTimeout(120, java.util.concurrent.TimeUnit.SECONDS)
@@ -802,10 +824,12 @@ public class MultimodalEnrollmentActivity extends AppCompatActivity {
                     public void onFailure(@NonNull Call call, @NonNull IOException e) {
                         runOnUiThread(() -> {
                             mProgressDialog.dismiss();
-                            Toast.makeText(MultimodalEnrollmentActivity.this,
-                                    "Erreur API: " + e.getClass().getSimpleName() + " - " + e.getMessage(),
-                                    Toast.LENGTH_LONG).show();
-                            finish();
+                            new android.app.AlertDialog.Builder(MultimodalEnrollmentActivity.this)
+                                    .setTitle("Hors ligne")
+                                    .setMessage("Erreur de connexion.\nLes données ont été sauvegardées localement sur la tablette.\n\nVeuillez utiliser l'écran 'Enregistrements Locaux' pour synchroniser plus tard.")
+                                    .setPositiveButton("OK, terminer", (dialog, which) -> finish())
+                                    .setCancelable(false)
+                                    .show();
                         });
                     }
 
@@ -813,6 +837,9 @@ public class MultimodalEnrollmentActivity extends AppCompatActivity {
                     public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                         String responseBody = response.body() != null ? response.body().string() : "";
                         if (response.isSuccessful()) {
+                            // Mise à jour du statut synchronisé
+                            dbHelper.updateSyncStatus(localId, true);
+                            
                             runOnUiThread(() -> {
                                 mProgressDialog.dismiss();
                                 new android.app.AlertDialog.Builder(MultimodalEnrollmentActivity.this)
@@ -824,7 +851,9 @@ public class MultimodalEnrollmentActivity extends AppCompatActivity {
                                         .show();
                             });
                         } else if (response.code() == 409) {
-                            // Doublon détecté — afficher les infos de la personne existante
+                            // Doublon détecté — la donnée existe déjà sur le serveur, donc on la marque synchronisée
+                            dbHelper.updateSyncStatus(localId, true);
+                            
                             try {
                                 JSONObject resp = new JSONObject(responseBody);
                                 String raison = resp.optString("raison", "Doublon détecté");

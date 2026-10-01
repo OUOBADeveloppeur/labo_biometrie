@@ -64,6 +64,10 @@
             android:theme="@style/Theme.MaterialComponents.Light.NoActionBar"
             android:screenOrientation="portrait"/>
 
+        <activity android:name=".fingerprint.SyncListActivity"
+            android:theme="@style/Theme.MaterialComponents.Light.NoActionBar"
+            android:screenOrientation="portrait"/>
+
 
         <activity android:name=".fingerprint.FingerprintSearchActivity"
             android:screenOrientation="portrait"/>

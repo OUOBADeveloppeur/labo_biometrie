@@ -22,6 +22,17 @@
             android:orientation="vertical">
 
             <Button
+                android:id="@+id/btnLocalSync"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:gravity="center"
+                android:text="ENREGISTREMENTS LOCAUX (SYNC)"
+                android:textSize="@dimen/t_18"
+                android:textColor="#ffffff"
+                android:backgroundTint="#4CAF50"
+                android:layout_marginBottom="10dp" />
+
+            <Button
                 android:id="@+id/btnMultimodal"
                 android:layout_width="match_parent"
                 android:layout_height="60dp"
