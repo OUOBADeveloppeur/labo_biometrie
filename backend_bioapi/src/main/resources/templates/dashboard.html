@@ -2,26 +2,42 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Biometric Dashboard - Enrôlements & Benchmarking</title>
+    <title>Biometric Dashboard - Registre Unifié des Enrôlements</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 25px; background-color: #f0f2f5; color: #333; }
-        .header-title { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
-        .header-title h1 { margin: 0; color: #1a237e; font-size: 26px; }
-        .badge-count { background: #1a237e; color: white; padding: 4px 12px; border-radius: 20px; font-size: 14px; }
-        
-        .table-container { background: white; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); overflow: hidden; }
+        .header-title { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 10px; }
+        .header-title h1 { margin: 0; color: #1a237e; font-size: 25px; }
+        .badges-group { display: flex; gap: 8px; flex-wrap: wrap; }
+        .badge-count { background: #1a237e; color: white; padding: 5px 12px; border-radius: 20px; font-size: 13px; font-weight: 600; }
+        .badge-count.secondary { background: #2e7d32; }
+
+        /* TAB STYLES */
+        .tabs { display: flex; gap: 8px; margin-bottom: 0; flex-wrap: wrap; }
+        .tab-btn { padding: 10px 18px; border: 2px solid #1a237e; background: white; color: #1a237e; border-radius: 8px 8px 0 0; cursor: pointer; font-weight: bold; font-size: 14px; transition: background 0.2s; }
+        .tab-btn.active { background: #1a237e; color: white; }
+        .tab-btn:hover:not(.active) { background: #e8eaf6; }
+        .tab-content { background: white; border-radius: 0 10px 10px 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); overflow-x: auto; }
+
         table { border-collapse: collapse; width: 100%; text-align: left; }
-        th, td { padding: 14px 16px; border-bottom: 1px solid #e0e0e0; }
-        th { background-color: #283593; color: white; font-weight: 600; text-transform: uppercase; font-size: 12px; letter-spacing: 0.5px; }
-        
+        th, td { padding: 12px 14px; border-bottom: 1px solid #e0e0e0; font-size: 13px; }
+        th { background-color: #283593; color: white; font-weight: 600; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; white-space: nowrap; }
+
         tr.user-row { cursor: pointer; transition: background-color 0.2s ease; }
         tr.user-row:hover { background-color: #e8eaf6 !important; }
         tr:nth-child(even) { background-color: #fafafa; }
-        
+
         .face-avatar { width: 44px; height: 44px; object-fit: cover; border-radius: 50%; border: 2px solid #3f51b5; }
-        .chip { display: inline-block; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; }
+        .chip { display: inline-block; padding: 3px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; white-space: nowrap; }
         .chip-fp { background: #e8f5e9; color: #2e7d32; }
         .chip-iris { background: #e1f5fe; color: #0288d1; }
+        .chip-src-app { background: #e3f2fd; color: #0d47a1; }
+        .chip-src-sql { background: #ede7f6; color: #4527a0; }
+
+        .sub-toolbar { padding: 12px 16px; background: #f8f9fa; border-bottom: 1px solid #e0e0e0; display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+        .filter-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+        .pill-btn { padding: 6px 12px; border: 1px solid #c5cae9; background: white; color: #1a237e; border-radius: 16px; cursor: pointer; font-size: 12px; font-weight: 600; }
+        .pill-btn.active { background: #1a237e; color: white; border-color: #1a237e; }
+        .search-input { padding: 8px 12px; border: 1px solid #ccc; border-radius: 6px; min-width: 270px; font-size: 13px; }
 
         /* MODAL STYLES */
         .modal-overlay {
@@ -38,8 +54,8 @@
         .modal-content {
             background: white;
             border-radius: 14px;
-            width: 85%;
-            max-width: 850px;
+            width: 90%;
+            max-width: 980px;
             max-height: 90vh;
             overflow-y: auto;
             box-shadow: 0 10px 30px rgba(0,0,0,0.3);
@@ -55,34 +71,23 @@
             justify-content: space-between;
             align-items: center;
             border-radius: 14px 14px 0 0;
+            position: sticky;
+            top: 0;
+            z-index: 5;
         }
-        .modal-header h2 { margin: 0; font-size: 20px; }
-        .close-btn {
-            background: transparent;
-            border: none;
-            color: white;
-            font-size: 26px;
-            cursor: pointer;
-            line-height: 1;
-        }
+        .modal-header h2 { margin: 0; font-size: 19px; }
+        .close-btn { background: transparent; border: none; color: white; font-size: 26px; cursor: pointer; line-height: 1; }
         .modal-body { padding: 24px; }
-        .profile-section { display: flex; gap: 24px; margin-bottom: 24px; align-items: center; background: #f8f9fa; padding: 16px; border-radius: 10px; }
-        .profile-img-large { width: 110px; height: 110px; object-fit: cover; border-radius: 10px; border: 3px solid #1a237e; }
-        .info-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; flex: 1; }
-        .info-item { font-size: 14px; }
-        .info-item strong { color: #555; display: block; font-size: 12px; text-transform: uppercase; }
+        .profile-section { display: flex; gap: 24px; margin-bottom: 20px; align-items: flex-start; background: #f8f9fa; padding: 16px; border-radius: 10px; flex-wrap: wrap; }
+        .profile-img-large { width: 115px; height: 115px; object-fit: cover; border-radius: 10px; border: 3px solid #1a237e; flex-shrink: 0; }
+        .info-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 12px; flex: 1; }
+        .info-item { font-size: 13px; background: white; padding: 8px 10px; border-radius: 6px; border: 1px solid #eceff1; }
+        .info-item strong { color: #5c6bc0; display: block; font-size: 11px; text-transform: uppercase; margin-bottom: 2px; }
 
-        .section-title { font-size: 16px; font-weight: bold; color: #1a237e; margin: 20px 0 10px 0; border-bottom: 2px solid #e8eaf6; padding-bottom: 6px; }
-        .finger-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; margin-top: 10px; }
-        .finger-card {
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 10px;
-            text-align: center;
-            background: #fff;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-        .finger-card img { width: 60px; height: 60px; object-fit: contain; margin-bottom: 6px; }
+        .section-title { font-size: 15px; font-weight: bold; color: #1a237e; margin: 20px 0 10px 0; border-bottom: 2px solid #e8eaf6; padding-bottom: 6px; }
+        .finger-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(145px, 1fr)); gap: 12px; margin-top: 10px; }
+        .finger-card { border: 1px solid #ddd; border-radius: 8px; padding: 10px; text-align: center; background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+        .finger-card img { width: 80px; height: 80px; object-fit: contain; margin-bottom: 6px; background: #fafafa; border-radius: 4px; }
         .tag-device { font-size: 11px; background: #e3f2fd; color: #1565c0; padding: 2px 6px; border-radius: 4px; font-weight: 600; display: inline-block; margin: 2px 0; }
         .tag-nfiq { font-size: 11px; padding: 2px 6px; border-radius: 4px; font-weight: 600; margin: 2px 0;}
         .tag-nfiq.score-bon { background: #e8f5e9; color: #2e7d32; }
@@ -94,57 +99,113 @@
         .btn-action:hover { opacity: 0.8; }
         .btn-edit { background-color: #f39c12; }
         .btn-delete { background-color: #e74c3c; }
+
+        .geo-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 18px; padding: 18px; }
+        .geo-box { border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden; max-height: 520px; overflow-y: auto; }
+        .geo-box h3 { margin: 0; padding: 12px 14px; background: #e8eaf6; color: #1a237e; font-size: 14px; position: sticky; top: 0; }
     </style>
 </head>
 <body>
     <div class="header-title">
-        <h1>📊 Tableau de Bord - Enrôlements & Banc de Test Biométrique</h1>
-        <span class="badge-count" th:text="${utilisateurs.size()} + ' enrôlés'"></span>
+        <h1>📊 Registre Biométrique Unifié (MOSIP / ABIS Ready)</h1>
+        <div class="badges-group">
+            <span class="badge-count" th:text="${utilisateurs.size()} + ' personnes dans le registre unique'"></span>
+            <span class="badge-count secondary" th:text="${countApp} + ' Terminal + ' + ${countImport} + ' Import SQL'"></span>
+        </div>
     </div>
 
-    <div class="table-container">
-        <table>
+    <!-- Navigation onglets -->
+    <div class="tabs">
+        <button onclick="showTab('enrollments')" class="tab-btn active" id="tab-enrollments"
+                th:text="'📋 Enrôlements Unifiés (' + ${utilisateurs.size()} + ')'">📋 Enrôlements Unifiés</button>
+        <button onclick="showTab('agents')" class="tab-btn" id="tab-agents"
+                th:text="'👮 Agents Opérateurs (' + ${agents.size()} + ')'">👮 Agents Opérateurs</button>
+        <button onclick="showTab('geo')" class="tab-btn" id="tab-geo"
+                th:text="'🌍 Référentiels Géo (' + ${paysList.size()} + ' pays / ' + ${provincesList.size()} + ' prov. / ' + ${communesList.size()} + ' comm.)'">🌍 Référentiels Géo</button>
+    </div>
+
+    <!-- ===== ONGLET 1 : Registre Unifié des Enrôlements ===== -->
+    <div id="tab-content-enrollments" class="tab-content" style="display:block">
+        <div class="sub-toolbar">
+            <div class="filter-pills">
+                <button class="pill-btn active" id="pill-all" onclick="filterOrigin('all')" th:text="'Tous (' + ${utilisateurs.size()} + ')'">Tous</button>
+                <button class="pill-btn" id="pill-app" onclick="filterOrigin('app')" th:text="'📱 Terminal App (' + ${countApp} + ')'">Terminal</button>
+                <button class="pill-btn" id="pill-sql" onclick="filterOrigin('sql')" th:text="'📥 Import SQL (' + ${countImport} + ')'">Import SQL</button>
+            </div>
+            <input type="text" id="searchUsers" class="search-input" placeholder="🔍 Rechercher par UIN/NIP, nom, emploi, localité..." onkeyup="applyUserFilters()">
+        </div>
+
+        <table id="usersTable">
             <thead>
                 <tr>
-                    <!-- <th>ID</th> -->
-                    <th>UIN</th>
+                    <th>ID</th>
+                    <th>UIN / N° NIP</th>
                     <th>Photo</th>
-                    <th>Nom & Prénom</th>
+                    <th>Nom &amp; Prénom</th>
                     <th>Sexe</th>
-                    <th>Date Naiss.</th>
-                    <th>Localité</th>
+                    <th>Naissance (Date / Lieu)</th>
+                    <th>Localité / Village</th>
+                    <th>Catégorie / Emploi</th>
+                    <th>Diplôme / Grp.</th>
                     <th>Empreintes</th>
                     <th>Iris</th>
-                    <th>Date d'enrôlement</th>
+                    <th>Origine / Statut</th>
                     <th>Action</th>
                 </tr>
             </thead>
             <tbody>
-                <tr th:each="u : ${utilisateurs}" class="user-row" th:onclick="'openUserModal(' + ${u.id} + ')'">
-                    <!-- <td th:text="'#' + ${u.id}" style="font-weight: bold; color: #1a237e;"></td> -->
-                    <td th:text="${u.uin}" style="font-weight: bold; color: #d32f2f;"></td>
+                <tr th:each="u : ${utilisateurs}" class="user-row"
+                    th:attr="data-origin=${u.sourceIdentificationId == null ? 'app' : 'sql'}"
+                    th:onclick="'openUserModal(' + ${u.id} + ')'">
+                    <td th:text="'#' + ${u.id}" style="font-weight:bold; color:#1a237e;"></td>
                     <td>
-                        <img th:if="${u.facePhotoBase64 != null}" th:src="|data:image/jpeg;base64,${u.facePhotoBase64}|" class="face-avatar" alt="Face"/>
-                        <span th:if="${u.facePhotoBase64 == null}" style="color: #999;">N/A</span>
+                        <div th:text="${u.uin ?: '-'}" style="font-weight: bold; color: #d32f2f;"></div>
+                        <div th:if="${u.matricule != null and !u.matricule.isEmpty()}" style="font-size:11px; color:#666;" th:text="'Mat: ' + ${u.matricule}"></div>
                     </td>
-                    <td><strong th:text="${u.nom} + ' ' + ${u.prenom}"></strong></td>
-                    <td th:text="${u.sexe}"></td>
-                    <td th:text="${u.dateNaissance}"></td>
-                    <td th:text="${u.localite}"></td>
                     <td>
-                        <span class="chip chip-fp" th:text="${u.empreintes.size()} + ' doigts'"></span>
-                        <div th:if="${u.empreintes.size() > 0}" style="margin-top: 5px; display: flex; gap: 4px; flex-wrap: wrap;">
-                            <span th:if="${u.empreintes[0].deviceModel != null}" class="tag-device" th:text="${u.empreintes[0].deviceModel}" style="font-size: 10px;"></span>
-                            <span th:if="${u.empreintes[0].scoreNfiq != null}"
-                                  th:class="'tag-nfiq ' + (${u.empreintes[0].scoreNfiq <= 2} ? 'score-bon' : (${u.empreintes[0].scoreNfiq == 3} ? 'score-moyen' : 'score-mauvais'))"
-                                  th:text="'NFIQ: ' + ${u.empreintes[0].scoreNfiq}"
+                        <img th:if="${u.facePhotoBase64 != null and !u.facePhotoBase64.isEmpty()}"
+                             th:src="|data:image/jpeg;base64,${u.facePhotoBase64}|" class="face-avatar" alt="Face"/>
+                        <span th:if="${u.facePhotoBase64 == null or u.facePhotoBase64.isEmpty()}" style="color: #999;">N/A</span>
+                    </td>
+                    <td>
+                        <strong th:text="(${u.nom ?: ''}) + ' ' + (${u.prenom ?: ''})"></strong>
+                        <div th:if="${u.nomJeuneFille != null and !u.nomJeuneFille.isEmpty()}" style="font-size:11px; color:#666;" th:text="'née ' + ${u.nomJeuneFille}"></div>
+                    </td>
+                    <td th:text="${u.sexe ?: '-'}"></td>
+                    <td>
+                        <div th:text="${u.dateNaissance ?: '-'}"></div>
+                        <div th:if="${u.lieuNaissance != null}" style="font-size:11px; color:#666;" th:text="${u.lieuNaissance}"></div>
+                    </td>
+                    <td>
+                        <div th:text="${u.localite ?: '-'}"></div>
+                        <div th:if="${u.village != null}" style="font-size:11px; color:#666;" th:text="${u.village}"></div>
+                    </td>
+                    <td>
+                        <div th:text="${u.emploiTenu ?: '-'}"></div>
+                        <div th:if="${u.categorie != null}" style="font-size:11px; color:#666;" th:text="${u.categorie}"></div>
+                    </td>
+                    <td>
+                        <div th:text="${u.dernierDiplome ?: '-'}"></div>
+                        <div th:if="${u.groupeSanguin != null and !u.groupeSanguin.isEmpty()}" style="font-size:11px; font-weight:bold; color:#b71c1c;" th:text="'Sang: ' + ${u.groupeSanguin}"></div>
+                    </td>
+                    <td>
+                        <span class="chip chip-fp" th:text="${u.nbEmpreintes} + ' doigts'"></span>
+                        <div th:if="${u.nbEmpreintes > 0}" style="margin-top: 4px; display: flex; gap: 4px; flex-wrap: wrap;">
+                            <span th:if="${u.firstDeviceModel != null}" class="tag-device" th:text="${u.firstDeviceModel}" style="font-size: 10px;"></span>
+                            <span th:if="${u.firstScoreNfiq != null}"
+                                  th:class="'tag-nfiq ' + (${u.firstScoreNfiq <= 2} ? 'score-bon' : (${u.firstScoreNfiq == 3} ? 'score-moyen' : 'score-mauvais'))"
+                                  th:text="'NFIQ: ' + ${u.firstScoreNfiq}"
                                   style="font-size: 10px;"></span>
                         </div>
                     </td>
                     <td>
-                        <span class="chip chip-iris" th:text="${u.iris.size()} + ' iris'"></span>
+                        <span class="chip chip-iris" th:text="${u.nbIris} + ' iris'"></span>
                     </td>
-                    <td th:text="${u.dateCreation != null ? #temporals.format(u.dateCreation, 'dd/MM/yyyy HH:mm') : 'N/A'}" style="color: #666; font-size: 13px;"></td>
+                    <td>
+                        <span th:if="${u.sourceIdentificationId == null}" class="chip chip-src-app">📱 Terminal</span>
+                        <span th:if="${u.sourceIdentificationId != null}" class="chip chip-src-sql">📥 Import SQL</span>
+                        <div style="font-size:11px; color:#555; margin-top:3px;" th:text="${u.statut ?: ''}"></div>
+                    </td>
                     <td style="white-space: nowrap;" onclick="event.stopPropagation();">
                         <button class="btn-action btn-edit" th:onclick="'editUser(' + ${u.id} + ')'">Modifier</button>
                         <button class="btn-action btn-delete" th:onclick="'deleteUser(' + ${u.id} + ')'">Supprimer</button>
@@ -154,16 +215,110 @@
         </table>
     </div>
 
-    <!-- MODAL DE DÉTAILS -->
+    <!-- ===== ONGLET 2 : Agents ===== -->
+    <div id="tab-content-agents" class="tab-content" style="display:none">
+        <div class="sub-toolbar">
+            <div><strong>💡 Astuce :</strong> Cliquez sur un agent opérateur pour afficher sa fiche complète et ses empreintes d'authentification.</div>
+            <input type="text" class="search-input" placeholder="🔍 Filtrer un agent..." onkeyup="filterTable('agentsTable', this.value)">
+        </div>
+        <table id="agentsTable">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>ID Utilisateur</th>
+                    <th>Nom</th>
+                    <th>Prénom</th>
+                    <th>Nom Utilisateur / Login</th>
+                    <th>Type / Rôle</th>
+                    <th>Genre</th>
+                    <th>Lieu Naiss.</th>
+                    <th>Contacts</th>
+                    <th>Bloqué ?</th>
+                    <th>Nb Échecs</th>
+                    <th>Chg. MDP</th>
+                    <th>Créé le</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="agent : ${agents}" class="user-row" th:onclick="'openAgentModal(' + ${agent.id} + ')'">
+                    <td th:text="'#' + ${agent.id}" style="font-weight:bold; color:#1a237e;"></td>
+                    <td th:text="${agent.idutilisateur}"></td>
+                    <td><strong th:text="${agent.nom ?: '-'}"></strong></td>
+                    <td th:text="${agent.prenom ?: (agent.prenomutilisateur ?: '-')}"></td>
+                    <td th:text="${agent.nomutilisateur ?: (agent.loginutilisateur ?: '-')}"></td>
+                    <td>
+                        <span th:if="${agent.typeutilisateur == 'Administrateur'}" style="background:#1a237e;color:white;padding:3px 9px;border-radius:10px;font-size:11px;">Administrateur</span>
+                        <span th:unless="${agent.typeutilisateur == 'Administrateur'}" style="background:#e0e0e0;color:#333;padding:3px 9px;border-radius:10px;font-size:11px;" th:text="${agent.typeutilisateur ?: '-'}"></span>
+                    </td>
+                    <td th:text="${agent.genreutilisateur ?: '-'}"></td>
+                    <td th:text="${agent.lieunaissanceutilisateur ?: '-'}"></td>
+                    <td>
+                        <div th:text="${agent.contact1utilisateur ?: '-'}"></div>
+                        <div style="font-size:11px; color:#666;" th:text="${agent.contact2utilisateur ?: ''}"></div>
+                    </td>
+                    <td>
+                        <span th:if="${agent.isblocked == true or agent.blocageutilisateur == true}" style="color:#c62828;font-weight:bold;">🔒 Oui</span>
+                        <span th:unless="${agent.isblocked == true or agent.blocageutilisateur == true}" style="color:#2e7d32;font-weight:bold;">✅ Non</span>
+                    </td>
+                    <td th:text="${agent.nbtentativeechoue ?: 0}"></td>
+                    <td th:text="${agent.changepassword == true ? 'Oui' : 'Non'}"></td>
+                    <td th:text="${agent.createdat != null ? #temporals.format(agent.createdat, 'dd/MM/yyyy HH:mm') : '-'}"></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- ===== ONGLET 3 : Référentiels Géographiques ===== -->
+    <div id="tab-content-geo" class="tab-content" style="display:none">
+        <div class="geo-grid">
+            <div class="geo-box">
+                <h3 th:text="'🌍 Pays (' + ${paysList.size()} + ')'">Pays</h3>
+                <table>
+                    <thead><tr><th>ID</th><th>Libellé Pays</th></tr></thead>
+                    <tbody>
+                        <tr th:each="p : ${paysList}">
+                            <td th:text="${p.idpays}"></td>
+                            <td th:text="${p.libellepays}"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="geo-box">
+                <h3 th:text="'🏛️ Provinces (' + ${provincesList.size()} + ')'">Provinces</h3>
+                <table>
+                    <thead><tr><th>ID</th><th>Libellé Province</th></tr></thead>
+                    <tbody>
+                        <tr th:each="pr : ${provincesList}">
+                            <td th:text="${pr.idprovince}"></td>
+                            <td th:text="${pr.libelleprovince}"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="geo-box">
+                <h3 th:text="'🏘️ Communes (' + ${communesList.size()} + ')'">Communes</h3>
+                <table>
+                    <thead><tr><th>ID</th><th>Commune</th><th>Province</th></tr></thead>
+                    <tbody>
+                        <tr th:each="c : ${communesList}">
+                            <td th:text="${c.idcommune}"></td>
+                            <td th:text="${c.libellecommune}"></td>
+                            <td th:text="${provinceMap[c.idprovince] ?: c.idprovince}"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DE DÉTAILS UNIVERSEL -->
     <div id="userModal" class="modal-overlay" onclick="closeUserModalOnOverlay(event)">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 id="modalTitle">Détails de l'Enrôlement</h2>
+                <h2 id="modalTitle">Détails</h2>
                 <button class="close-btn" onclick="closeUserModal()">&times;</button>
             </div>
-            <div class="modal-body" id="modalBody">
-                <!-- Rempli dynamiquement en JS -->
-            </div>
+            <div class="modal-body" id="modalBody"></div>
         </div>
     </div>
 
@@ -205,7 +360,54 @@
 
     <script th:inline="javascript">
         /*<![CDATA[*/
-        const usersData = /*[[${utilisateurs}]]*/ [];
+        const paysMap = /*[[${paysMap}]]*/ {};
+        const communeMap = /*[[${communeMap}]]*/ {};
+        let currentOriginFilter = 'all';
+
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            document.getElementById('tab-content-' + tabName).style.display = 'block';
+            document.getElementById('tab-' + tabName).classList.add('active');
+        }
+
+        function filterOrigin(origin) {
+            currentOriginFilter = origin;
+            document.querySelectorAll('.pill-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('pill-' + origin).classList.add('active');
+            applyUserFilters();
+        }
+
+        function applyUserFilters() {
+            const q = (document.getElementById('searchUsers').value || '').toLowerCase();
+            document.querySelectorAll('#usersTable tbody tr').forEach(tr => {
+                const originMatch = (currentOriginFilter === 'all') || (tr.getAttribute('data-origin') === currentOriginFilter);
+                const textMatch = !q || tr.innerText.toLowerCase().includes(q);
+                tr.style.display = (originMatch && textMatch) ? '' : 'none';
+            });
+        }
+
+        function filterTable(tableId, query) {
+            const q = (query || '').toLowerCase();
+            document.querySelectorAll('#' + tableId + ' tbody tr').forEach(tr => {
+                tr.style.display = tr.innerText.toLowerCase().includes(q) ? '' : 'none';
+            });
+        }
+
+        function val(v) {
+            return (v !== null && v !== undefined && v !== '') ? v : '—';
+        }
+
+        function itemHtml(label, value) {
+            return `<div class="info-item"><strong>${label}</strong>${val(value)}</div>`;
+        }
+
+        function detectMimeFromB64(b64) {
+            if (!b64) return 'image/bmp';
+            if (b64.startsWith('iVBOR')) return 'image/png';
+            if (b64.startsWith('/9j/')) return 'image/jpeg';
+            return 'image/bmp';
+        }
 
         function formatFingerPosition(pos) {
             if (!pos) return 'Doigt Inconnu';
@@ -221,17 +423,7 @@
                 'thumb_0': 'Pouce Gauche',
                 'thumb_1': 'Pouce Droit'
             };
-            if (dict[pos]) return dict[pos];
-
-            // Repli générique propre
-            if (pos.startsWith('left_')) {
-                return 'Main Gauche (D' + (parseInt(pos.split('_')[1]) + 1) + ')';
-            } else if (pos.startsWith('right_')) {
-                return 'Main Droite (D' + (parseInt(pos.split('_')[1]) + 1) + ')';
-            } else if (pos.startsWith('thumb_')) {
-                return pos === 'thumb_0' ? 'Pouce Gauche' : 'Pouce Droit';
-            }
-            return pos;
+            return dict[pos] || pos;
         }
 
         function formatIrisPosition(pos) {
@@ -241,111 +433,221 @@
         }
 
         function openUserModal(userId) {
-            const user = usersData.find(u => u.id === userId);
-            if (!user) return;
-
             const modalBody = document.getElementById('modalBody');
-            document.getElementById('modalTitle').textContent = "Fiche Biométrique #" + user.id + " - " + (user.nom || '') + " " + (user.prenom || '');
-
-            let faceHtml = user.facePhotoBase64 
-                ? `<img src="data:image/jpeg;base64,${user.facePhotoBase64}" class="profile-img-large" alt="Visage"/>`
-                : `<div class="profile-img-large" style="display:flex;align-items:center;justify-content:center;background:#eee;color:#888;">Pas de photo</div>`;
-
-            let fingersCards = '';
-            if (user.empreintes && user.empreintes.length > 0) {
-                user.empreintes.forEach(emp => {
-                    let labelFr = formatFingerPosition(emp.positionDoigt);
-                    let imgTag = emp.imageBase64 
-                        ? `<img src="data:image/bmp;base64,${emp.imageBase64}" alt="${labelFr}"/>`
-                        : `<div style="height:60px;display:flex;align-items:center;justify-content:center;color:#999;font-size:11px;">BMP N/A</div>`;
-                    
-                    let deviceTag = `<div class="tag-device">📟 ${emp.deviceModel ? emp.deviceModel : 'Non spécifié'}</div>`;
-                    
-                    let nfiqScore = emp.scoreNfiq;
-                    let qualiteSdk = emp.scoreQualiteSdk;
-                    let nfiqClass = nfiqScore == null ? '' : (nfiqScore <= 2 ? 'score-bon' : (nfiqScore == 3 ? 'score-moyen' : 'score-mauvais'));
-                    let nfiqLabel = nfiqScore != null ? nfiqScore : 'N/A';
-                    let sdkLabel = qualiteSdk != null ? qualiteSdk + '%' : 'N/A';
-                    let nfiqTag = `<div class="tag-nfiq ${nfiqClass}">⭐ NFIQ: ${nfiqLabel} (SDK: ${sdkLabel})</div>`;
-                    
-                    let surface = emp.surfaceContact;
-                    let tentatives = emp.nombreTentatives;
-                    let benchTag = `<div class="tag-bench">🔄 Tentatives: ${tentatives || 'N/A'}<br/>📐 Surface: ${surface || 'N/A'}px</div>`;
-                    
-                    let timeTag = `<div class="tag-time">⏱️ ${emp.tempsCaptureMs != null ? emp.tempsCaptureMs + ' ms' : 'N/A'}</div>`;
-                    
-                    let fwInfo = (emp.firmwareVersion || '') + (emp.resolution ? ' (' + emp.resolution + ' DPI)' : '');
-                    let fwTag = `<div style="font-size: 9px; color: #888; margin-top: 5px;">${fwInfo}</div>`;
-                    
-                    let captureTag = `<div style="font-size: 10px; font-weight: bold; color: #555;">${emp.typeCapture || ''}</div>`;
-
-                    fingersCards += `
-                        <div class="finger-card" style="min-width: 150px;">
-                            ${imgTag}
-                            <div style="font-weight:bold;font-size:12px;margin:4px 0;color:#1a237e;">${labelFr}</div>
-                            ${captureTag}
-                            ${deviceTag}
-                            ${nfiqTag}
-                            ${benchTag}
-                            ${timeTag}
-                            ${fwTag}
-                        </div>
-                    `;
-                });
-            } else {
-                fingersCards = '<p style="color:#777;">Aucune empreinte capturée pour cet utilisateur.</p>';
-            }
-
-            let irisCards = '';
-            if (user.iris && user.iris.length > 0) {
-                user.iris.forEach(ir => {
-                    let oeilFr = formatIrisPosition(ir.positionOeil);
-                    irisCards += `
-                        <div class="finger-card" style="min-width:140px;">
-                            <div style="font-size:28px;">👁️</div>
-                            <div style="font-weight:bold;font-size:13px;margin:5px 0;color:#1a237e;">${oeilFr}</div>
-                            <div class="tag-device">Iris ISO</div>
-                        </div>
-                    `;
-                });
-            } else {
-                irisCards = '<p style="color:#777;">Aucune capture d\'iris enregistrée.</p>';
-            }
-
-            modalBody.innerHTML = `
-                <div class="profile-section">
-                    ${faceHtml}
-                    <div class="info-grid">
-                        <div class="info-item"><strong>UIN</strong> <span style="color:#d32f2f;font-weight:bold;">${user.uin || 'N/A'}</span></div>
-                        <div class="info-item"><strong>Nom</strong> ${user.nom || 'N/A'}</div>
-                        <div class="info-item"><strong>Prénom</strong> ${user.prenom || 'N/A'}</div>
-                        <div class="info-item"><strong>Sexe</strong> ${user.sexe || 'N/A'}</div>
-                        <div class="info-item"><strong>Date de Naissance</strong> ${user.dateNaissance || 'N/A'}</div>
-                        <div class="info-item"><strong>Localité</strong> ${user.localite || 'N/A'}</div>
-                        <div class="info-item"><strong>Date d'enrôlement</strong> ${user.dateCreation ? new Date(user.dateCreation).toLocaleString('fr-FR') : 'N/A'}</div>
-                        
-                        <!-- Nouveaux champs de session -->
-                        <div class="info-item"><strong>Équipement / Terminal</strong> ${user.nomEquipement || 'N/A'}</div>
-                        <div class="info-item"><strong>Temps Total Enrôlement</strong> ${user.tempsEnrolementTotalMs ? user.tempsEnrolementTotalMs + ' ms' : 'N/A'}</div>
-                        <div class="info-item"><strong>Statut</strong> ${user.statut || 'N/A'}</div>
-                        
-                        <div class="info-item"><strong>Nombre de doigts</strong> ${user.empreintes ? user.empreintes.length : 0} empreinte(s)</div>
-                        <div class="info-item"><strong>Iris</strong> ${user.iris ? user.iris.length : 0} capture(s)</div>
-                    </div>
-                </div>
-
-                <div class="section-title">🖐️ Empreintes Digitales (${user.empreintes ? user.empreintes.length : 0}) - Données de Banc d'Essai</div>
-                <div class="finger-cards">
-                    ${fingersCards}
-                </div>
-
-                <div class="section-title">👁️ Données Iris (${user.iris ? user.iris.length : 0})</div>
-                <div style="display:flex;gap:12px;margin-top:10px;">
-                    ${irisCards}
-                </div>
-            `;
-
+            document.getElementById('modalTitle').textContent = "Chargement de la fiche #" + userId + "...";
+            modalBody.innerHTML = '<p style="text-align:center;padding:30px;">Chargement des données biométriques et civiles...</p>';
             document.getElementById('userModal').classList.add('active');
+
+            fetch('/api/enroll/' + userId)
+                .then(r => r.json())
+                .then(user => {
+                    document.getElementById('modalTitle').textContent = `🪪 Fiche Biométrique Unifiée #${user.id} — ${user.nom || ''} ${user.prenom || ''}`;
+
+                    const faceMime = detectMimeFromB64(user.facePhotoBase64);
+                    const faceHtml = user.facePhotoBase64
+                        ? `<img src="data:${faceMime};base64,${user.facePhotoBase64}" class="profile-img-large" alt="Visage"/>`
+                        : `<div class="profile-img-large" style="display:flex;align-items:center;justify-content:center;background:#eee;color:#888;font-size:12px;">Pas de photo</div>`;
+
+                    let fingersCards = '';
+                    if (user.empreintes && user.empreintes.length > 0) {
+                        user.empreintes.forEach(emp => {
+                            const labelFr = formatFingerPosition(emp.positionDoigt);
+                            const fpMime = detectMimeFromB64(emp.imageBase64);
+                            const imgTag = emp.imageBase64
+                                ? `<img src="data:${fpMime};base64,${emp.imageBase64}" alt="${labelFr}"/>`
+                                : `<div style="height:80px;display:flex;align-items:center;justify-content:center;color:#999;font-size:11px;">Image N/A</div>`;
+
+                            const deviceTag = `<div class="tag-device">📟 ${emp.deviceModel || 'Non spécifié'}</div>`;
+                            const nfiqScore = emp.scoreNfiq;
+                            const nfiqClass = nfiqScore == null ? '' : (nfiqScore <= 2 ? 'score-bon' : (nfiqScore === 3 ? 'score-moyen' : 'score-mauvais'));
+                            const nfiqTag = nfiqScore != null
+                                ? `<div class="tag-nfiq ${nfiqClass}">⭐ NFIQ: ${nfiqScore} (SDK: ${emp.scoreQualiteSdk != null ? emp.scoreQualiteSdk + '%' : 'N/A'})</div>`
+                                : '';
+                            const tplTag = emp.templateBase64
+                                ? `<div class="tag-bench">🧬 ISO 19794-2 (${emp.templateBase64.length} car.)</div>`
+                                : '';
+                            const timeTag = emp.tempsCaptureMs != null
+                                ? `<div class="tag-time">⏱️ ${emp.tempsCaptureMs} ms</div>`
+                                : '';
+
+                            fingersCards += `
+                                <div class="finger-card">
+                                    ${imgTag}
+                                    <div style="font-weight:bold;font-size:12px;margin:4px 0;color:#1a237e;">${labelFr}</div>
+                                    <div style="font-size:10px;color:#555;">${emp.typeCapture || ''}</div>
+                                    ${deviceTag}
+                                    ${nfiqTag}
+                                    ${tplTag}
+                                    ${timeTag}
+                                </div>
+                            `;
+                        });
+                    } else {
+                        fingersCards = '<p style="color:#777;">Aucune empreinte enregistrée.</p>';
+                    }
+
+                    let irisCards = '';
+                    if (user.iris && user.iris.length > 0) {
+                        user.iris.forEach(ir => {
+                            irisCards += `
+                                <div class="finger-card" style="min-width:140px;">
+                                    <div style="font-size:28px;">👁️</div>
+                                    <div style="font-weight:bold;font-size:13px;margin:5px 0;color:#1a237e;">${formatIrisPosition(ir.positionOeil)}</div>
+                                    <div class="tag-device">Iris ISO</div>
+                                </div>
+                            `;
+                        });
+                    } else {
+                        irisCards = '<p style="color:#777;">Aucune capture d\'iris enregistrée.</p>';
+                    }
+
+                    const communeNaiss = user.idCommuneNaissance ? (communeMap[user.idCommuneNaissance] + ' (#' + user.idCommuneNaissance + ')') : null;
+                    const paysNom = user.idPays ? (paysMap[user.idPays] + ' (#' + user.idPays + ')') : null;
+
+                    modalBody.innerHTML = `
+                        <div class="profile-section">
+                            ${faceHtml}
+                            <div class="info-grid">
+                                ${itemHtml('UIN / N° NIP', user.uin)}
+                                ${itemHtml('Matricule', user.matricule)}
+                                ${itemHtml('Nom', user.nom)}
+                                ${itemHtml('Nom de jeune fille', user.nomJeuneFille)}
+                                ${itemHtml('Prénom(s)', user.prenom)}
+                                ${itemHtml('Sexe', user.sexe)}
+                                ${itemHtml('Date de naissance', user.dateNaissance)}
+                                ${itemHtml('Lieu de naissance', user.lieuNaissance || communeNaiss)}
+                                ${itemHtml('Pays', paysNom)}
+                                ${itemHtml('Localité / Commune', user.localite)}
+                                ${itemHtml('Village / Secteur', user.village)}
+                                ${itemHtml('Localité d\'origine', user.localiteOrigine)}
+                            </div>
+                        </div>
+
+                        <div class="section-title">📋 État Civil, Profession, Documents &amp; Contacts</div>
+                        <div class="info-grid">
+                            ${itemHtml('Situation matrimoniale', user.situationMatrimoniale)}
+                            ${itemHtml('Nb épouses / enfants', (user.nbEpouses != null || user.nbEnfants != null) ? ((user.nbEpouses || 0) + ' ép. / ' + (user.nbEnfants || 0) + ' enf.') : null)}
+                            ${itemHtml('Groupe sanguin', user.groupeSanguin)}
+                            ${itemHtml('Catégorie', user.categorie)}
+                            ${itemHtml('Promotion', user.promotion)}
+                            ${itemHtml('Emploi tenu', user.emploiTenu)}
+                            ${itemHtml('Niveau d\'instruction', user.niveauInstruction || user.autreNiveauInstruction)}
+                            ${itemHtml('Dernier diplôme', user.dernierDiplome)}
+                            ${itemHtml('Date CNIB', user.dateCnib)}
+                            ${itemHtml('Contact 1 / 2 / 3', [user.contact1, user.contact2, user.contact3].filter(Boolean).join(' / '))}
+                            ${itemHtml('Pers. à prévenir 1', user.personnePrevenir1 ? (user.personnePrevenir1 + ' (' + (user.contactPersonnePrevenir1 || '') + ')') : null)}
+                            ${itemHtml('Pers. à prévenir 2', user.personnePrevenir2 ? (user.personnePrevenir2 + ' (' + (user.contactPersonnePrevenir2 || '') + ')') : null)}
+                            ${itemHtml('N° Arme / Châssis', [user.numeroArme, user.numeroChassis].filter(Boolean).join(' / '))}
+                            ${itemHtml('Origine / Équipement', user.nomEquipement)}
+                            ${itemHtml('Statut', user.statut)}
+                            ${itemHtml('Date d\'enrôlement', user.dateCreation ? new Date(user.dateCreation).toLocaleString('fr-FR') : null)}
+                        </div>
+
+                        <div class="section-title">🖐️ Empreintes Digitales Normalisées (${user.empreintes ? user.empreintes.length : 0})</div>
+                        <div class="finger-cards">${fingersCards}</div>
+
+                        <div id="extraSlapsContainer"></div>
+
+                        <div class="section-title">👁️ Données Iris (${user.iris ? user.iris.length : 0})</div>
+                        <div style="display:flex;gap:12px;margin-top:10px;">${irisCards}</div>
+                    `;
+
+                    if (user.sourceIdentificationId) {
+                        fetch('/api/identifications/' + user.sourceIdentificationId)
+                            .then(r => r.ok ? r.json() : null)
+                            .then(extra => {
+                                if (!extra) return;
+                                const slaps = extra.slapImages || {};
+                                const stds = extra.standardPayloads || {};
+                                let html = '';
+                                if (Object.keys(slaps).length > 0) {
+                                    let sCards = '';
+                                    Object.keys(slaps).forEach(k => {
+                                        const uri = slaps[k];
+                                        if (uri.startsWith('data:image/')) {
+                                            sCards += `<div class="finger-card"><img src="${uri}" alt="${k}"/><div style="font-weight:bold;font-size:12px;color:#1a237e;">${k}</div></div>`;
+                                        }
+                                    });
+                                    if (sCards) {
+                                        html += `<div class="section-title">🖐️ Captures Slaps Originales (4 Doigts / 2 Pouces)</div><div class="finger-cards">${sCards}</div>`;
+                                    }
+                                }
+                                if (Object.keys(stds).length > 0) {
+                                    let stdItems = '';
+                                    Object.keys(stds).forEach(k => { stdItems += itemHtml(k, stds[k] + ' octets'); });
+                                    html += `<div class="section-title">📐 Enregistrements Standards ISO 19794 / ANSI INCITS</div><div class="info-grid">${stdItems}</div>`;
+                                }
+                                document.getElementById('extraSlapsContainer').innerHTML = html;
+                            });
+                    }
+                });
+        }
+
+        function openAgentModal(id) {
+            const modalBody = document.getElementById('modalBody');
+            document.getElementById('modalTitle').textContent = "Chargement de l'agent #" + id + "...";
+            modalBody.innerHTML = '<p style="text-align:center;padding:30px;">Chargement...</p>';
+            document.getElementById('userModal').classList.add('active');
+
+            fetch('/api/agents/' + id)
+                .then(r => r.json())
+                .then(data => {
+                    const a = data.entity || {};
+                    document.getElementById('modalTitle').textContent = `👮 Agent #${a.id} — ${a.nom || ''} ${a.prenom || a.prenomutilisateur || ''}`;
+
+                    const photoHtml = data.photoUri
+                        ? `<img src="${data.photoUri}" class="profile-img-large" alt="Agent"/>`
+                        : `<div class="profile-img-large" style="display:flex;align-items:center;justify-content:center;background:#eee;color:#888;font-size:12px;">Pas de photo</div>`;
+
+                    const fingers = data.fingerImages || {};
+                    let fingersHtml = '';
+                    Object.keys(fingers).forEach(label => {
+                        const uri = fingers[label];
+                        const preview = uri.startsWith('data:image/')
+                            ? `<img src="${uri}" alt="${label}"/>`
+                            : `<div style="height:80px;display:flex;align-items:center;justify-content:center;background:#f5f5f5;color:#555;font-size:11px;">Données (${uri.split(':')[1]} octets)</div>`;
+                        fingersHtml += `<div class="finger-card">${preview}<div style="font-weight:bold;font-size:12px;color:#1a237e;">${label}</div></div>`;
+                    });
+                    if (!fingersHtml) {
+                        fingersHtml = '<p style="color:#777;">Aucune empreinte enregistrée pour cet agent.</p>';
+                    }
+
+                    modalBody.innerHTML = `
+                        <div class="profile-section">
+                            ${photoHtml}
+                            <div class="info-grid">
+                                ${itemHtml('ID', a.id)}
+                                ${itemHtml('ID Utilisateur', a.idutilisateur)}
+                                ${itemHtml('Nom', a.nom)}
+                                ${itemHtml('Prénom', a.prenom || a.prenomutilisateur)}
+                                ${itemHtml('Nom utilisateur', a.nomutilisateur)}
+                                ${itemHtml('Login utilisateur', a.loginutilisateur)}
+                                ${itemHtml('Type / Rôle', a.typeutilisateur)}
+                                ${itemHtml('Genre', a.genreutilisateur)}
+                                ${itemHtml('Date naissance', a.datenaissanceutilisateur)}
+                                ${itemHtml('Lieu naissance', a.lieunaissanceutilisateur)}
+                                ${itemHtml('Situation matrimoniale', a.situationmatrimonialeutilisateur)}
+                                ${itemHtml('Contact 1', a.contact1utilisateur)}
+                                ${itemHtml('Contact 2', a.contact2utilisateur)}
+                            </div>
+                        </div>
+
+                        <div class="section-title">🔐 Sécurité &amp; Audit du Compte</div>
+                        <div class="info-grid">
+                            ${itemHtml('Bloqué (isblocked)', a.isblocked)}
+                            ${itemHtml('Blocage utilisateur', a.blocageutilisateur)}
+                            ${itemHtml('Date/heure blocage', a.dateheureblocageutilisateur)}
+                            ${itemHtml('Raison blocage', a.raisonblocageutilisateur)}
+                            ${itemHtml('Nb tentatives échouées', a.nbtentativeechoue)}
+                            ${itemHtml('Changer MDP (changepassword)', a.changepassword)}
+                            ${itemHtml('Créé le (createdat)', a.createdat)}
+                            ${itemHtml('Modifié le', a.lastmodifiedat)}
+                        </div>
+
+                        <div class="section-title">🖐️ Empreintes de l'Agent (${Object.keys(fingers).length})</div>
+                        <div class="finger-cards">${fingersHtml}</div>
+                    `;
+                });
         }
 
         function closeUserModal() {
@@ -353,21 +655,21 @@
         }
 
         function closeUserModalOnOverlay(event) {
-            if (event.target.id === 'userModal') {
-                closeUserModal();
-            }
+            if (event.target.id === 'userModal') closeUserModal();
         }
 
         function editUser(userId) {
-            const user = usersData.find(u => u.id === userId);
-            if (!user) return;
-            document.getElementById('editId').value = user.id;
-            document.getElementById('editNom').value = user.nom || '';
-            document.getElementById('editPrenom').value = user.prenom || '';
-            document.getElementById('editSexe').value = user.sexe || '';
-            document.getElementById('editDateNaissance').value = user.dateNaissance || '';
-            document.getElementById('editLocalite').value = user.localite || '';
-            document.getElementById('editModal').classList.add('active');
+            fetch('/api/enroll/' + userId)
+                .then(r => r.json())
+                .then(user => {
+                    document.getElementById('editId').value = user.id;
+                    document.getElementById('editNom').value = user.nom || '';
+                    document.getElementById('editPrenom').value = user.prenom || '';
+                    document.getElementById('editSexe').value = user.sexe || '';
+                    document.getElementById('editDateNaissance').value = user.dateNaissance || '';
+                    document.getElementById('editLocalite').value = user.localite || '';
+                    document.getElementById('editModal').classList.add('active');
+                });
         }
 
         function closeEditModal() {
@@ -375,9 +677,7 @@
         }
 
         function closeEditModalOnOverlay(event) {
-            if (event.target.id === 'editModal') {
-                closeEditModal();
-            }
+            if (event.target.id === 'editModal') closeEditModal();
         }
 
         function submitEditForm() {
@@ -394,30 +694,16 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             }).then(res => {
-                if(res.ok) {
-                    window.location.reload();
-                } else {
-                    alert('Erreur lors de la modification');
-                }
-            }).catch(err => {
-                console.error(err);
-                alert('Erreur réseau');
+                if (res.ok) window.location.reload();
+                else alert('Erreur lors de la modification');
             });
         }
 
         function deleteUser(userId) {
-            if (confirm('Voulez-vous vraiment supprimer cet enregistrement (ID: ' + userId + ') ? Cette action est irréversible.')) {
-                fetch('/api/enroll/' + userId, {
-                    method: 'DELETE'
-                }).then(response => {
-                    if (response.ok) {
-                        window.location.reload();
-                    } else {
-                        alert('Erreur lors de la suppression.');
-                    }
-                }).catch(err => {
-                    console.error(err);
-                    alert('Erreur réseau lors de la suppression.');
+            if (confirm('Voulez-vous vraiment supprimer cet enregistrement (ID: ' + userId + ') ?')) {
+                fetch('/api/enroll/' + userId, { method: 'DELETE' }).then(res => {
+                    if (res.ok) window.location.reload();
+                    else alert('Erreur lors de la suppression.');
                 });
             }
         }
@@ -425,4 +711,3 @@
     </script>
 </body>
 </html>
-

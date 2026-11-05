@@ -1,59 +1,64 @@
 package com.hf.biometrie.api.service;
 
 import com.hf.biometrie.api.dto.EnrollmentRequest;
+import com.hf.biometrie.api.entity.CasAdjudication;
 import com.hf.biometrie.api.entity.Empreinte;
 import com.hf.biometrie.api.entity.Iris;
 import com.hf.biometrie.api.entity.Utilisateur;
-import com.hf.biometrie.api.exception.DoublonException;
 import com.hf.biometrie.api.repository.UtilisateurRepository;
-import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Optional;
 import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Service
-@RequiredArgsConstructor
 public class EnrollmentService {
 
     private final UtilisateurRepository utilisateurRepository;
+    private final AbisDeduplicationService abisDeduplicationService;
+
+    public EnrollmentService(
+            UtilisateurRepository utilisateurRepository,
+            AbisDeduplicationService abisDeduplicationService
+    ) {
+        this.utilisateurRepository = utilisateurRepository;
+        this.abisDeduplicationService = abisDeduplicationService;
+    }
+
+    public static final class EnrollmentOutcome {
+        private final Utilisateur utilisateur;
+        private final List<CasAdjudication> casAdjudications;
+
+        public EnrollmentOutcome(Utilisateur utilisateur, List<CasAdjudication> casAdjudications) {
+            this.utilisateur = utilisateur;
+            this.casAdjudications = casAdjudications;
+        }
+
+        public Utilisateur utilisateur() {
+            return utilisateur;
+        }
+
+        public List<CasAdjudication> casAdjudications() {
+            return casAdjudications;
+        }
+    }
 
     @Transactional
     public Utilisateur saveEnrollment(EnrollmentRequest request) {
+        return persistAndEvaluate(request).utilisateur();
+    }
 
-        // ── 1. Vérification par faceToken (identifiant biométrique facial unique) ──
-        if (request.getFaceToken() != null && !request.getFaceToken().isBlank()) {
-            Optional<Utilisateur> parToken = utilisateurRepository.findByFaceToken(request.getFaceToken());
-            if (parToken.isPresent()) {
-                throw new DoublonException(
-                    "Token facial déjà enregistré",
-                    parToken.get()
-                );
-            }
-        }
+    @Transactional
+    public EnrollmentOutcome saveEnrollmentWithAbis(EnrollmentRequest request) {
+        return persistAndEvaluate(request);
+    }
 
-        // ── 2. Vérification par identité civile (nom + prénom + date de naissance) ──
-        if (request.getNom() != null && request.getPrenom() != null && request.getDateNaissance() != null) {
-            Optional<Utilisateur> parIdentite = utilisateurRepository
-                .findByNomIgnoreCaseAndPrenomIgnoreCaseAndDateNaissance(
-                    request.getNom().trim(),
-                    request.getPrenom().trim(),
-                    request.getDateNaissance().trim()
-                );
-            if (parIdentite.isPresent()) {
-                throw new DoublonException(
-                    "Identité déjà enregistrée (Nom + Prénom + Date de naissance)",
-                    parIdentite.get()
-                );
-            }
-        }
-
-        // ── 3. Aucun doublon → enregistrement normal ──
+    private EnrollmentOutcome persistAndEvaluate(EnrollmentRequest request) {
         Utilisateur u = new Utilisateur();
         if (request.getUin() == null || request.getUin().trim().isEmpty()) {
-            // Génère un nombre aléatoire à 12 chiffres
-            long random12Digit = java.util.concurrent.ThreadLocalRandom.current().nextLong(100_000_000_000L, 1_000_000_000_000L);
+            long random12Digit = ThreadLocalRandom.current().nextLong(100_000_000_000L, 1_000_000_000_000L);
             u.setUin(String.valueOf(random12Digit));
         } else {
             u.setUin(request.getUin());
@@ -65,7 +70,6 @@ public class EnrollmentService {
         u.setLocalite(request.getLocalite());
         u.setFaceToken(request.getFaceToken());
         u.setFacePhotoBase64(request.getFacePhotoBase64());
-        // Métadonnées de session (automatiques)
         u.setNomEquipement(request.getNomEquipement());
         u.setTempsEnrolementTotalMs(request.getTempsEnrolementTotalMs());
         u.setStatut(request.getStatut() != null ? request.getStatut() : "COMPLET");
@@ -73,23 +77,18 @@ public class EnrollmentService {
         if (request.getEmpreintes() != null) {
             for (EnrollmentRequest.BiometricTemplate et : request.getEmpreintes()) {
                 Empreinte emp = new Empreinte();
-                // Identification
                 emp.setPositionDoigt(et.getPosition());
                 emp.setCategorieDoigt(et.getCategorieDoigt());
                 emp.setTypeCapture(et.getTypeCapture());
-                // Données biométriques
                 emp.setTemplateBase64(et.getTemplateBase64());
                 emp.setImageBase64(et.getImageBase64());
-                // Équipement
                 emp.setDeviceModel(et.getDeviceModel());
                 emp.setFirmwareVersion(et.getFirmwareVersion());
                 emp.setResolution(et.getResolution());
-                // Qualité
                 emp.setQualite(et.getQualite());
                 emp.setScoreNfiq(et.getScoreNfiq());
                 emp.setScoreQualiteSdk(et.getScoreQualiteSdk());
                 emp.setSurfaceContact(et.getSurfaceContact());
-                // Performance
                 emp.setTempsCaptureMs(et.getTempsCaptureMs());
                 emp.setNombreTentatives(et.getNombreTentatives());
                 emp.setUtilisateur(u);
@@ -107,7 +106,10 @@ public class EnrollmentService {
             }
         }
 
-        return utilisateurRepository.save(u);
+        Utilisateur saved = utilisateurRepository.save(u);
+        List<CasAdjudication> cases = abisDeduplicationService.evaluateNewEnrollment(saved);
+
+        return new EnrollmentOutcome(saved, cases);
     }
 
     @Transactional(readOnly = true)

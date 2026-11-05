@@ -2,6 +2,12 @@
 **/target/
 *.class
 
+# Node and Angular
+**/node_modules/
+**/dist/
+**/.angular/
+**/out-tsc/
+
 # Android and Gradle
 **/build/
 **/.gradle/

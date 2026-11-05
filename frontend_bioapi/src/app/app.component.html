@@ -1,0 +1,1071 @@
+<div class="portal-layout">
+  <!-- ================= SIDEBAR ================= -->
+  <aside class="sidebar">
+    <div class="brand-header">
+      <div class="brand-logo">🧬</div>
+      <div class="brand-text">
+        <h1>BioID Sovereign</h1>
+        <span>MOSIP &amp; ABIS Platform</span>
+      </div>
+    </div>
+
+    <div class="nav-section-label">Pilotage &amp; Identité</div>
+    <nav class="nav-list">
+      <button class="nav-item" [class.active]="activeView === 'overview'" (click)="switchView('overview')">
+        <span class="nav-item-left"><span>📊</span> Vue d'ensemble</span>
+      </button>
+
+      <button class="nav-item" [class.active]="activeView === 'registry'" (click)="switchView('registry')">
+        <span class="nav-item-left"><span>🪪</span> Registre Unifié</span>
+        <span class="nav-badge">{{ stats.totalEnrollments }}</span>
+      </button>
+
+      <button class="nav-item" [class.active]="activeView === 'adjudication'" (click)="switchView('adjudication')">
+        <span class="nav-item-left"><span>⚖️</span> Adjudication &amp; ABIS</span>
+        <span class="nav-badge" [class.alert]="stats.pendingAdjudications > 0">
+          {{ stats.pendingAdjudications }}
+        </span>
+      </button>
+    </nav>
+
+    <div class="nav-section-label">Administration</div>
+    <nav class="nav-list">
+      <button class="nav-item" [class.active]="activeView === 'agents'" (click)="switchView('agents')">
+        <span class="nav-item-left"><span>👮</span> Agents Opérateurs</span>
+        <span class="nav-badge">{{ stats.agentsCount }}</span>
+      </button>
+
+      <button class="nav-item" [class.active]="activeView === 'geo'" (click)="switchView('geo')">
+        <span class="nav-item-left"><span>🌍</span> Référentiels Géo</span>
+        <span class="nav-badge">{{ stats.communesCount }}</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="engine-status">
+        <span class="pulse-dot"></span>
+        <span>Moteur ABIS SourceAFIS 3.18</span>
+      </div>
+      <div>Seuil d'alerte : ≥ 40 pts (FAR 0.01%)</div>
+      <div>Standards : ISO 19794-2 / 19794-4</div>
+    </div>
+  </aside>
+
+  <!-- ================= MAIN AREA ================= -->
+  <main class="main-area">
+    <header class="topbar">
+      <div class="topbar-title">
+        @if (activeView === 'overview') {
+          <h2>Tableau de Bord National Biométrique</h2>
+          <p>Supervision temps réel du registre unifié, qualité biométrique et dédoublonnage ABIS 1:N</p>
+        } @else if (activeView === 'registry') {
+          <h2>Registre Unifié des Enrôlements ({{ stats.totalEnrollments }})</h2>
+          <p>Base unique consolidant les enrôlements Terminal Android TR760 et les imports nationaux SQL</p>
+        } @else if (activeView === 'adjudication') {
+          <h2>Centre d'Adjudication Manuelle &amp; Moteur ABIS</h2>
+          <p>Inspection humaine côte-à-côte des doublons suspects détectés par l'algorithme biométrique</p>
+        } @else if (activeView === 'agents') {
+          <h2>Gestion des Agents &amp; Opérateurs d'Enrôlement</h2>
+          <p>Comptes d'opérateurs habilités et empreintes d'authentification</p>
+        } @else {
+          <h2>Référentiels Géographiques Nationaux</h2>
+          <p>Hiérarchie officielle : Pays ({{ stats.paysCount }}), Provinces ({{ stats.provincesCount }}) et Communes ({{ stats.communesCount }})</p>
+        }
+      </div>
+
+      <div class="topbar-actions">
+        <button class="btn btn-outline" (click)="refreshAll()" [disabled]="loading">
+          🔄 Actualiser
+        </button>
+        <button class="btn btn-primary" (click)="triggerGlobalAbisScan()" [disabled]="scanningAbis">
+          {{ scanningAbis ? '⏳ Scan ABIS 1:N en cours...' : '🔍 Lancer Scan ABIS Global (1:N)' }}
+        </button>
+      </div>
+    </header>
+
+    <div class="content-body">
+      <!-- ================= VUE 1 : OVERVIEW ================= -->
+      @if (activeView === 'overview') {
+        <div class="kpi-grid">
+          <div class="kpi-card">
+            <div class="kpi-meta">
+              <span>Registre Unifié</span>
+              <h3>{{ stats.totalEnrollments }}</h3>
+              <small>{{ stats.terminalCount }} Terminal TR760 • {{ stats.sqlImportCount }} Import SQL</small>
+            </div>
+            <div class="kpi-icon" style="background:#dbeafe;color:#1e40af;">🪪</div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-meta">
+              <span>Empreintes &amp; Iris</span>
+              <h3>{{ stats.totalFingerprints }}</h3>
+              <small>doigts normalisés • {{ stats.totalIris }} captures iris</small>
+            </div>
+            <div class="kpi-icon" style="background:#d1fae5;color:#059669;">🖐️</div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-meta">
+              <span>File d'Adjudication</span>
+              <h3 [style.color]="stats.pendingAdjudications > 0 ? '#d97706' : '#0f172a'">
+                {{ stats.pendingAdjudications }}
+              </h3>
+              <small>{{ stats.confirmedDuplicates }} doublons rejetés • {{ stats.clearedCases }} approuvés</small>
+            </div>
+            <div class="kpi-icon" style="background:#fef3c7;color:#d97706;">⚖️</div>
+          </div>
+
+          <div class="kpi-card">
+            <div class="kpi-meta">
+              <span>Agents &amp; Territoire</span>
+              <h3>{{ stats.agentsCount }}</h3>
+              <small>agents • {{ stats.provincesCount }} provinces / {{ stats.communesCount }} communes</small>
+            </div>
+            <div class="kpi-icon" style="background:#ede9fe;color:#6d28d9;">🏛️</div>
+          </div>
+        </div>
+
+        <div class="panel-card">
+          <div class="panel-header">
+            <h3>⚡ Flux MOSIP : Dédoublonnage 1:N &amp; Adjudication Manuelle</h3>
+            <div style="display:flex;gap:8px;">
+              <button class="btn btn-outline btn-xs" (click)="switchView('registry')">Ouvrir le Registre →</button>
+              <button class="btn btn-primary btn-xs" (click)="switchView('adjudication')">File d'Adjudication →</button>
+            </div>
+          </div>
+          <div style="padding:18px 20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;">
+            <div class="attr-box">
+              <label>1. Capture / Import Unifié</label>
+              <div>Les fiches Terminal TR760 et SQL sont stockées dans une table unique normalisée ({{ stats.totalEnrollments }} individus).</div>
+            </div>
+            <div class="attr-box">
+              <label>2. Extraction &amp; Matching 1:N</label>
+              <div>SourceAFIS extrait les minuties de chaque doigt et calcule un score biométrique sur l'ensemble du registre.</div>
+            </div>
+            <div class="attr-box">
+              <label>3. Mise en Quarantaine</label>
+              <div>Si le score ≥ 40 pts ou identité civile identique, le dossier passe automatiquement en statut EN_ADJUDICATION.</div>
+            </div>
+            <div class="attr-box">
+              <label>4. Adjudication Humaine</label>
+              <div>Un superviseur compare les 2 fiches côte-à-côte et confirme le doublon ou valide l'attribution de l'UIN.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel-card">
+          <div class="panel-header">
+            <h3>🚨 Dernières Alertes ABIS / Adjudication</h3>
+            <button class="btn btn-outline btn-xs" (click)="triggerGlobalAbisScan()" [disabled]="scanningAbis">
+              Scanner toute la base maintenant
+            </button>
+          </div>
+          <div class="table-scroll">
+            <table class="bio-table">
+              <thead>
+                <tr>
+                  <th>Cas #</th>
+                  <th>Candidat</th>
+                  <th>Existant en Base</th>
+                  <th>Modalité</th>
+                  <th>Score ABIS</th>
+                  <th>Score Identité</th>
+                  <th>Statut</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (c of adjudications.slice(0, 6); track c.id) {
+                  <tr>
+                    <td><strong>#{{ c.id }}</strong></td>
+                    <td>#{{ c.candidat.id }} — {{ c.candidat.nom }} {{ c.candidat.prenom }}</td>
+                    <td>#{{ c.existant.id }} — {{ c.existant.nom }} {{ c.existant.prenom }}</td>
+                    <td><span class="badge badge-violet">{{ c.modalite }}</span></td>
+                    <td><strong>{{ c.scoreAbis || 0 }} pts</strong></td>
+                    <td>{{ c.scoreIdentite || 0 }}%</td>
+                    <td>
+                      @if (c.statut === 'EN_ATTENTE') {
+                        <span class="badge badge-amber">⏳ En attente</span>
+                      } @else if (c.statut === 'DOUBLON_CONFIRME') {
+                        <span class="badge badge-red">❌ Doublon confirmé</span>
+                      } @else {
+                        <span class="badge badge-green">✅ Différents validés</span>
+                      }
+                    </td>
+                    <td>
+                      <button class="btn btn-primary btn-xs" (click)="switchView('adjudication'); openAdjudicationWorkbench(c.id)">
+                        Inspecter côte-à-côte
+                      </button>
+                    </td>
+                  </tr>
+                } @empty {
+                  <tr>
+                    <td colspan="8" style="text-align:center;padding:28px;color:#64748b;">
+                      Aucun dossier dans la file d'adjudication. Cliquez sur <strong>« Lancer Scan ABIS Global (1:N) »</strong> en haut à droite pour auditer les {{ stats.totalEnrollments }} enregistrements !
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      }
+
+      <!-- ================= VUE 2 : REGISTRE UNIFIÉ ================= -->
+      @if (activeView === 'registry') {
+        <div class="panel-card">
+          <div class="toolbar-row">
+            <div class="pill-group">
+              <button class="pill" [class.active]="registryOriginFilter === 'all'" (click)="setOriginFilter('all')">
+                Tous ({{ enrollments.length }})
+              </button>
+              <button class="pill" [class.active]="registryOriginFilter === 'app'" (click)="setOriginFilter('app')">
+                📱 Terminal TR760 ({{ stats.terminalCount }})
+              </button>
+              <button class="pill" [class.active]="registryOriginFilter === 'sql'" (click)="setOriginFilter('sql')">
+                📥 Import SQL ({{ stats.sqlImportCount }})
+              </button>
+              <button class="pill" [class.active]="registryOriginFilter === 'bio'" (click)="setOriginFilter('bio')">
+                🖐️ Avec Biométrie ({{ stats.withBiometricsCount }})
+              </button>
+              <button class="pill" [class.active]="registryOriginFilter === 'adjudication'" (click)="setOriginFilter('adjudication')">
+                ⚖️ En Adjudication
+              </button>
+            </div>
+
+            <input
+              type="text"
+              class="search-box"
+              placeholder="🔍 Rechercher UIN, NIP, nom, matricule, emploi, commune..."
+              [(ngModel)]="registrySearch"
+              (ngModelChange)="registryPage = 1"
+            />
+          </div>
+
+          <div class="table-scroll">
+            <table class="bio-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Photo</th>
+                  <th>UIN / N° NIP</th>
+                  <th>Identité Civile</th>
+                  <th>Naissance</th>
+                  <th>Localité / Village</th>
+                  <th>Profession / Diplôme</th>
+                  <th>Biométrie</th>
+                  <th>Origine &amp; Statut</th>
+                  <th>Actions &amp; Test ABIS</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (u of pagedEnrollments; track u.id) {
+                  <tr class="clickable" (click)="openUserDossier(u.id)">
+                    <td><strong>#{{ u.id }}</strong></td>
+                    <td>
+                      @if (buildImageSrc(u.facePhotoBase64); as faceSrc) {
+                        <img [src]="faceSrc" class="avatar-circle" alt="Photo" />
+                      } @else {
+                        <span class="avatar-placeholder">{{ initials(u.nom, u.prenom) }}</span>
+                      }
+                    </td>
+                    <td>
+                      <div style="font-weight:700;color:#1e40af;">{{ u.uin || '—' }}</div>
+                      @if (u.matricule) {
+                        <small style="color:#64748b;">Mat: {{ u.matricule }}</small>
+                      }
+                    </td>
+                    <td>
+                      <div style="font-weight:700;">{{ u.nom || '—' }} {{ u.prenom || '' }}</div>
+                      <small style="color:#64748b;">
+                        {{ u.sexe || 'Sexe N/A' }}
+                        @if (u.groupeSanguin) { • Sang {{ u.groupeSanguin }} }
+                      </small>
+                    </td>
+                    <td>
+                      <div>{{ u.dateNaissance || '—' }}</div>
+                      @if (u.lieuNaissance) {
+                        <small style="color:#64748b;">{{ u.lieuNaissance }}</small>
+                      }
+                    </td>
+                    <td>
+                      <div>{{ u.localite || '—' }}</div>
+                      @if (u.village) {
+                        <small style="color:#64748b;">{{ u.village }}</small>
+                      }
+                    </td>
+                    <td>
+                      <div>{{ u.emploiTenu || u.categorie || '—' }}</div>
+                      @if (u.dernierDiplome) {
+                        <small style="color:#64748b;">{{ u.dernierDiplome }}</small>
+                      }
+                    </td>
+                    <td>
+                      <div style="display:flex;gap:5px;flex-wrap:wrap;">
+                        <span class="badge" [ngClass]="u.nbEmpreintes > 0 ? 'badge-green' : 'badge-slate'">
+                          🖐️ {{ u.nbEmpreintes }}
+                        </span>
+                        @if (u.nbIris > 0) {
+                          <span class="badge badge-blue">👁️ {{ u.nbIris }}</span>
+                        }
+                        @if (u.firstScoreNfiq !== null) {
+                          <span class="badge badge-violet">NFIQ {{ u.firstScoreNfiq }}</span>
+                        }
+                      </div>
+                    </td>
+                    <td>
+                      <div>
+                        @if (u.sourceIdentificationId === null) {
+                          <span class="badge badge-blue">📱 Terminal</span>
+                        } @else {
+                          <span class="badge badge-violet">📥 Import SQL</span>
+                        }
+                      </div>
+                      <div style="margin-top:4px;">
+                        @if (u.statut === 'EN_ADJUDICATION') {
+                          <span class="badge badge-amber">⚖️ Adjudication</span>
+                        } @else if (u.statut === 'REJETE_DOUBLON') {
+                          <span class="badge badge-red">❌ Rejeté doublon</span>
+                        } @else {
+                          <span class="badge badge-green">✅ {{ u.statut || 'Actif' }}</span>
+                        }
+                      </div>
+                    </td>
+                    <td style="white-space:nowrap;" (click)="$event.stopPropagation()">
+                      <button
+                        class="btn btn-outline btn-xs"
+                        title="Simuler un ré-enrôlement de cette personne pour tester l'alerte ABIS et l'adjudication"
+                        (click)="triggerSimulateDuplicate(u.id, $event)"
+                      >
+                        🧪 Simuler Doublon
+                      </button>
+                      <button class="btn btn-outline btn-xs" style="margin-left:4px;" (click)="openEditModal(u, $event)">
+                        ✏️
+                      </button>
+                      <button class="btn btn-crimson btn-xs" style="margin-left:4px;" (click)="confirmDeleteUser(u.id, $event)">
+                        🗑️
+                      </button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+
+          <div class="pagination-bar">
+            <span>
+              Affichage de {{ pagedEnrollments.length }} sur {{ filteredEnrollments.length }} dossiers filtrés
+            </span>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <button class="btn btn-outline btn-xs" [disabled]="registryPage <= 1" (click)="registryPage = registryPage - 1">
+                ← Précédent
+              </button>
+              <span>Page {{ registryPage }} / {{ totalRegistryPages }}</span>
+              <button
+                class="btn btn-outline btn-xs"
+                [disabled]="registryPage >= totalRegistryPages"
+                (click)="registryPage = registryPage + 1"
+              >
+                Suivant →
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- ================= VUE 3 : ADJUDICATION MANUELLE & ABIS ================= -->
+      @if (activeView === 'adjudication') {
+        @if (activeWorkbench; as wb) {
+          <div class="panel-card" style="padding:18px 20px;background:#fff;">
+            <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
+              <div>
+                <span class="badge badge-amber" style="margin-right:8px;">DOSSIER ADJUDICATION #{{ wb.caseInfo.id }}</span>
+                <strong style="font-size:16px;">{{ wb.caseInfo.raisonAlerte }}</strong>
+              </div>
+              <button class="btn btn-outline btn-xs" (click)="activeWorkbench = null">
+                ← Retour à la liste des dossiers ({{ adjudications.length }})
+              </button>
+            </div>
+
+            <div class="workbench-grid">
+              <!-- COLONNE GAUCHE : CANDIDAT -->
+              <div class="dossier-col">
+                <div class="dossier-col-header candidate">
+                  <span>🆕 DOSSIER CANDIDAT (#{{ wb.candidat.id }})</span>
+                  <span class="badge badge-amber">{{ wb.candidat.statut || 'EN_ADJUDICATION' }}</span>
+                </div>
+
+                <div class="dossier-hero">
+                  @if (buildImageSrc(wb.candidat.facePhotoBase64); as candPhoto) {
+                    <img [src]="candPhoto" class="dossier-photo" alt="Candidat" (click)="openZoom('Photo Candidat', candPhoto)" />
+                  } @else {
+                    <div class="dossier-photo" style="display:flex;align-items:center;justify-content:center;color:#64748b;font-size:12px;">
+                      Sans photo
+                    </div>
+                  }
+                  <div>
+                    <div style="font-size:16px;font-weight:800;">{{ wb.candidat.nom }} {{ wb.candidat.prenom }}</div>
+                    <div style="font-size:12px;color:#64748b;">UIN/NIP : <strong>{{ wb.candidat.uin || 'En attente' }}</strong></div>
+                    <div style="font-size:12px;color:#64748b;">Source : {{ wb.candidat.nomEquipement || 'Terminal' }}</div>
+                  </div>
+                </div>
+
+                <div class="compare-rows">
+                  <div class="compare-row" [class.match-highlight]="sameField(wb.candidat.nom, wb.existant.nom)">
+                    <span>Nom</span><span>{{ wb.candidat.nom || '—' }}</span>
+                  </div>
+                  <div class="compare-row" [class.match-highlight]="sameField(wb.candidat.prenom, wb.existant.prenom)">
+                    <span>Prénom(s)</span><span>{{ wb.candidat.prenom || '—' }}</span>
+                  </div>
+                  <div class="compare-row" [class.match-highlight]="sameField(wb.candidat.sexe, wb.existant.sexe)">
+                    <span>Sexe</span><span>{{ wb.candidat.sexe || '—' }}</span>
+                  </div>
+                  <div class="compare-row" [class.match-highlight]="sameField(wb.candidat.dateNaissance, wb.existant.dateNaissance)">
+                    <span>Date de naissance</span><span>{{ wb.candidat.dateNaissance || '—' }}</span>
+                  </div>
+                  <div class="compare-row" [class.match-highlight]="sameField(wb.candidat.localite, wb.existant.localite)">
+                    <span>Localité / Commune</span><span>{{ wb.candidat.localite || '—' }}</span>
+                  </div>
+                  <div class="compare-row">
+                    <span>Profession / Catégorie</span><span>{{ wb.candidat.emploiTenu || wb.candidat.categorie || '—' }}</span>
+                  </div>
+                </div>
+
+                <div style="padding:8px 18px 0;font-size:12px;font-weight:700;color:#475569;">
+                  🖐️ Empreintes Candidat ({{ wb.candidat.empreintes.length }}) — cliquer pour zoomer
+                </div>
+                <div class="finger-mini-grid">
+                  @for (emp of wb.candidat.empreintes; track emp.id) {
+                    <div class="finger-tile" (click)="openZoom('Candidat — ' + formatFingerLabel(emp.positionDoigt), buildImageSrc(emp.imageBase64))">
+                      @if (buildImageSrc(emp.imageBase64); as fpSrc) {
+                        <img [src]="fpSrc" [alt]="formatFingerLabel(emp.positionDoigt)" />
+                      } @else {
+                        <div style="height:64px;display:flex;align-items:center;justify-content:center;font-size:10px;color:#94a3b8;">ISO seul</div>
+                      }
+                      <small>{{ formatFingerLabel(emp.positionDoigt) }}</small>
+                    </div>
+                  }
+                </div>
+              </div>
+
+              <!-- COLONNE CENTRALE : VERDICT MOTEUR ABIS -->
+              <div class="abis-center-card">
+                <div style="font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#94a3b8;">
+                  Score Biométrique SourceAFIS
+                </div>
+
+                <div class="score-ring" [class.high]="(wb.caseInfo.scoreAbis || 0) >= 40">
+                  <strong>{{ wb.caseInfo.scoreAbis || 0 }}</strong>
+                  <small>Points ABIS</small>
+                </div>
+
+                <div style="margin-bottom:8px;">
+                  <span class="badge badge-violet">{{ wb.caseInfo.modalite }}</span>
+                </div>
+                <div style="font-size:12px;color:#cbd5e1;">
+                  Similarité État Civil : <strong>{{ wb.caseInfo.scoreIdentite || 0 }}%</strong>
+                </div>
+                @if (wb.caseInfo.doigtCandidat) {
+                  <div style="font-size:11.5px;color:#38bdf8;margin-top:4px;">
+                    Meilleur match : {{ formatFingerLabel(wb.caseInfo.doigtCandidat) }}
+                  </div>
+                }
+
+                @if (workbenchFingerScores.length > 0) {
+                  <div class="finger-bars">
+                    <div style="font-size:11px;color:#94a3b8;text-transform:uppercase;font-weight:700;margin-top:6px;">
+                      Détail Doigt par Doigt
+                    </div>
+                    @for (fs of workbenchFingerScores; track fs.pos) {
+                      <div class="finger-bar-item">
+                        <div style="display:flex;justify-content:space-between;">
+                          <span>{{ fs.label }}</span>
+                          <strong>{{ fs.score }} pts</strong>
+                        </div>
+                        <div class="finger-bar-track">
+                          <div class="finger-bar-fill" [style.width.%]="fs.score > 100 ? 100 : fs.score"></div>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                }
+
+                <!-- Formulaire de décision humaine -->
+                <div style="margin-top:18px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.12);text-align:left;">
+                  <label style="font-size:11px;color:#94a3b8;display:block;margin-bottom:4px;">Agent Adjudicateur</label>
+                  <select
+                    [(ngModel)]="decisionOperator"
+                    style="width:100%;padding:7px 9px;border-radius:6px;border:1px solid #334155;background:#1e293b;color:#fff;font-size:12px;margin-bottom:10px;"
+                  >
+                    @for (ag of agents; track ag.id) {
+                      <option [value]="(ag.nom || '') + ' ' + (ag.prenom || ag.prenomutilisateur || '')">
+                        {{ ag.nom }} {{ ag.prenom || ag.prenomutilisateur }} ({{ ag.typeutilisateur }})
+                      </option>
+                    }
+                  </select>
+
+                  <label style="font-size:11px;color:#94a3b8;display:block;margin-bottom:4px;">Observation d'audit</label>
+                  <textarea
+                    rows="2"
+                    [(ngModel)]="decisionComment"
+                    placeholder="Motif de la décision manuelle..."
+                    style="width:100%;padding:7px 9px;border-radius:6px;border:1px solid #334155;background:#1e293b;color:#fff;font-size:12px;margin-bottom:12px;"
+                  ></textarea>
+
+                  <div style="display:flex;flex-direction:column;gap:8px;">
+                    <button
+                      class="btn btn-crimson"
+                      style="width:100%;justify-content:center;"
+                      [disabled]="submittingDecision"
+                      (click)="submitAdjudicationDecision('DOUBLON_CONFIRME')"
+                    >
+                      ❌ Confirmer Doublon (Rejeter)
+                    </button>
+                    <button
+                      class="btn btn-emerald"
+                      style="width:100%;justify-content:center;"
+                      [disabled]="submittingDecision"
+                      (click)="submitAdjudicationDecision('DIFFERENTS_VALIDES')"
+                    >
+                      ✅ Différents (Valider UIN)
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- COLONNE DROITE : DOSSIER EXISTANT -->
+              <div class="dossier-col">
+                <div class="dossier-col-header existing">
+                  <span>🏛️ DOSSIER EXISTANT EN BASE (#{{ wb.existant.id }})</span>
+                  <span class="badge badge-blue">{{ wb.existant.statut || 'COMPLET' }}</span>
+                </div>
+
+                <div class="dossier-hero">
+                  @if (buildImageSrc(wb.existant.facePhotoBase64); as existPhoto) {
+                    <img [src]="existPhoto" class="dossier-photo" alt="Existant" (click)="openZoom('Photo Existant', existPhoto)" />
+                  } @else {
+                    <div class="dossier-photo" style="display:flex;align-items:center;justify-content:center;color:#64748b;font-size:12px;">
+                      Sans photo
+                    </div>
+                  }
+                  <div>
+                    <div style="font-size:16px;font-weight:800;">{{ wb.existant.nom }} {{ wb.existant.prenom }}</div>
+                    <div style="font-size:12px;color:#64748b;">UIN/NIP : <strong>{{ wb.existant.uin || '—' }}</strong></div>
+                    <div style="font-size:12px;color:#64748b;">Source : {{ wb.existant.nomEquipement || 'Registre' }}</div>
+                  </div>
+                </div>
+
+                <div class="compare-rows">
+                  <div class="compare-row" [class.match-highlight]="sameField(wb.candidat.nom, wb.existant.nom)">
+                    <span>Nom</span><span>{{ wb.existant.nom || '—' }}</span>
+                  </div>
+                  <div class="compare-row" [class.match-highlight]="sameField(wb.candidat.prenom, wb.existant.prenom)">
+                    <span>Prénom(s)</span><span>{{ wb.existant.prenom || '—' }}</span>
+                  </div>
+                  <div class="compare-row" [class.match-highlight]="sameField(wb.candidat.sexe, wb.existant.sexe)">
+                    <span>Sexe</span><span>{{ wb.existant.sexe || '—' }}</span>
+                  </div>
+                  <div class="compare-row" [class.match-highlight]="sameField(wb.candidat.dateNaissance, wb.existant.dateNaissance)">
+                    <span>Date de naissance</span><span>{{ wb.existant.dateNaissance || '—' }}</span>
+                  </div>
+                  <div class="compare-row" [class.match-highlight]="sameField(wb.candidat.localite, wb.existant.localite)">
+                    <span>Localité / Commune</span><span>{{ wb.existant.localite || '—' }}</span>
+                  </div>
+                  <div class="compare-row">
+                    <span>Profession / Catégorie</span><span>{{ wb.existant.emploiTenu || wb.existant.categorie || '—' }}</span>
+                  </div>
+                </div>
+
+                <div style="padding:8px 18px 0;font-size:12px;font-weight:700;color:#475569;">
+                  🖐️ Empreintes Existant ({{ wb.existant.empreintes.length }}) — cliquer pour zoomer
+                </div>
+                <div class="finger-mini-grid">
+                  @for (emp of wb.existant.empreintes; track emp.id) {
+                    <div class="finger-tile" (click)="openZoom('Existant — ' + formatFingerLabel(emp.positionDoigt), buildImageSrc(emp.imageBase64))">
+                      @if (buildImageSrc(emp.imageBase64); as fpSrc) {
+                        <img [src]="fpSrc" [alt]="formatFingerLabel(emp.positionDoigt)" />
+                      } @else {
+                        <div style="height:64px;display:flex;align-items:center;justify-content:center;font-size:10px;color:#94a3b8;">ISO seul</div>
+                      }
+                      <small>{{ formatFingerLabel(emp.positionDoigt) }}</small>
+                    </div>
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
+        } @else {
+          <div class="panel-card">
+            <div class="toolbar-row">
+              <div class="pill-group">
+                <button class="pill" [class.active]="adjudicationFilter === 'EN_ATTENTE'" (click)="adjudicationFilter = 'EN_ATTENTE'">
+                  ⏳ À traiter ({{ stats.pendingAdjudications }})
+                </button>
+                <button class="pill" [class.active]="adjudicationFilter === 'DOUBLON_CONFIRME'" (click)="adjudicationFilter = 'DOUBLON_CONFIRME'">
+                  ❌ Doublons confirmés ({{ stats.confirmedDuplicates }})
+                </button>
+                <button class="pill" [class.active]="adjudicationFilter === 'DIFFERENTS_VALIDES'" (click)="adjudicationFilter = 'DIFFERENTS_VALIDES'">
+                  ✅ Différents validés ({{ stats.clearedCases }})
+                </button>
+                <button class="pill" [class.active]="adjudicationFilter === 'ALL'" (click)="adjudicationFilter = 'ALL'">
+                  Tous ({{ adjudications.length }})
+                </button>
+              </div>
+
+              <button class="btn btn-primary btn-xs" (click)="triggerGlobalAbisScan()" [disabled]="scanningAbis">
+                🔍 Relancer l'audit ABIS sur tout le registre
+              </button>
+            </div>
+
+            <div class="table-scroll">
+              <table class="bio-table">
+                <thead>
+                  <tr>
+                    <th>Cas #</th>
+                    <th>Dossier Candidat</th>
+                    <th>Dossier Existant</th>
+                    <th>Modalité Détectée</th>
+                    <th>Score ABIS</th>
+                    <th>Score Civil</th>
+                    <th>Motif d'alerte</th>
+                    <th>Statut / Décision</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (c of filteredAdjudications; track c.id) {
+                    <tr class="clickable" (click)="openAdjudicationWorkbench(c.id)">
+                      <td><strong>#{{ c.id }}</strong></td>
+                      <td>
+                        <strong>#{{ c.candidat.id }} {{ c.candidat.nom }} {{ c.candidat.prenom }}</strong>
+                        <div style="font-size:11.5px;color:#64748b;">{{ c.candidat.nbEmpreintes }} doigts • {{ c.candidat.localite || '—' }}</div>
+                      </td>
+                      <td>
+                        <strong>#{{ c.existant.id }} {{ c.existant.nom }} {{ c.existant.prenom }}</strong>
+                        <div style="font-size:11.5px;color:#64748b;">UIN: {{ c.existant.uin || '—' }} • {{ c.existant.nbEmpreintes }} doigts</div>
+                      </td>
+                      <td><span class="badge badge-violet">{{ c.modalite }}</span></td>
+                      <td><strong style="color:#b91c1c;">{{ c.scoreAbis || 0 }} pts</strong></td>
+                      <td>{{ c.scoreIdentite || 0 }}%</td>
+                      <td style="max-width:260px;">{{ c.raisonAlerte }}</td>
+                      <td>
+                        @if (c.statut === 'EN_ATTENTE') {
+                          <span class="badge badge-amber">⏳ En attente</span>
+                        } @else if (c.statut === 'DOUBLON_CONFIRME') {
+                          <span class="badge badge-red">❌ Doublon ({{ c.decisionPar }})</span>
+                        } @else {
+                          <span class="badge badge-green">✅ Validé ({{ c.decisionPar }})</span>
+                        }
+                      </td>
+                      <td (click)="$event.stopPropagation()">
+                        <button class="btn btn-primary btn-xs" (click)="openAdjudicationWorkbench(c.id)">
+                          ⚖️ Ouvrir Comparateur
+                        </button>
+                      </td>
+                    </tr>
+                  } @empty {
+                    <tr>
+                      <td colspan="9" style="text-align:center;padding:34px;color:#64748b;">
+                        Aucun dossier dans ce filtre. Lancez un <strong>Scan ABIS Global</strong> ou utilisez <strong>« 🧪 Simuler Doublon »</strong> depuis le Registre Unifié pour tester le comparateur côte-à-côte !
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        }
+      }
+
+      <!-- ================= VUE 4 : AGENTS ================= -->
+      @if (activeView === 'agents') {
+        <div class="panel-card">
+          <div class="toolbar-row">
+            <strong>👮 Liste des {{ agents.length }} opérateurs et administrateurs d'enrôlement</strong>
+            <input
+              type="text"
+              class="search-box"
+              placeholder="🔍 Filtrer un agent par nom, rôle, login..."
+              [(ngModel)]="agentSearch"
+            />
+          </div>
+
+          <div class="table-scroll">
+            <table class="bio-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>ID Utilisateur</th>
+                  <th>Nom &amp; Prénom</th>
+                  <th>Nom Utilisateur / Login</th>
+                  <th>Rôle</th>
+                  <th>Contacts</th>
+                  <th>Statut Compte</th>
+                  <th>Échecs Connexion</th>
+                  <th>Fiche</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (ag of filteredAgents; track ag.id) {
+                  <tr class="clickable" (click)="openAgentDetail(ag.id)">
+                    <td><strong>#{{ ag.id }}</strong></td>
+                    <td>{{ ag.idutilisateur }}</td>
+                    <td><strong>{{ ag.nom }} {{ ag.prenom || ag.prenomutilisateur }}</strong></td>
+                    <td>{{ ag.nomutilisateur || ag.loginutilisateur || '—' }}</td>
+                    <td>
+                      @if (ag.typeutilisateur === 'Administrateur') {
+                        <span class="badge badge-blue">Administrateur</span>
+                      } @else {
+                        <span class="badge badge-slate">{{ ag.typeutilisateur || 'Standard' }}</span>
+                      }
+                    </td>
+                    <td>{{ ag.contact1utilisateur || '—' }}</td>
+                    <td>
+                      @if (ag.isblocked || ag.blocageutilisateur) {
+                        <span class="badge badge-red">🔒 Bloqué</span>
+                      } @else {
+                        <span class="badge badge-green">✅ Actif</span>
+                      }
+                    </td>
+                    <td>{{ ag.nbtentativeechoue || 0 }}</td>
+                    <td>
+                      <button class="btn btn-outline btn-xs">Détails</button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      }
+
+      <!-- ================= VUE 5 : RÉFÉRENTIELS GÉO ================= -->
+      @if (activeView === 'geo') {
+        <div style="display:grid;grid-template-columns:280px 280px 1fr;gap:18px;align-items:start;">
+          <div class="panel-card" style="max-height:640px;overflow-y:auto;">
+            <div class="panel-header"><h3>🌍 Pays ({{ paysList.length }})</h3></div>
+            <table class="bio-table">
+              <thead><tr><th>ID</th><th>Pays</th></tr></thead>
+              <tbody>
+                @for (p of paysList; track p.idpays) {
+                  <tr><td>{{ p.idpays }}</td><td>{{ p.libellepays }}</td></tr>
+                }
+              </tbody>
+            </table>
+          </div>
+
+          <div class="panel-card" style="max-height:640px;overflow-y:auto;">
+            <div class="panel-header">
+              <h3>🏛️ Provinces ({{ provincesList.length }})</h3>
+              @if (selectedProvinceId !== null) {
+                <button class="btn btn-outline btn-xs" (click)="selectedProvinceId = null">Toutes</button>
+              }
+            </div>
+            <table class="bio-table">
+              <thead><tr><th>ID</th><th>Province (cliquer)</th></tr></thead>
+              <tbody>
+                @for (pr of provincesList; track pr.idprovince) {
+                  <tr
+                    class="clickable"
+                    [style.background]="selectedProvinceId === pr.idprovince ? '#dbeafe' : ''"
+                    (click)="selectedProvinceId = pr.idprovince"
+                  >
+                    <td>{{ pr.idprovince }}</td>
+                    <td><strong>{{ pr.libelleprovince }}</strong></td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+
+          <div class="panel-card" style="max-height:640px;overflow-y:auto;">
+            <div class="panel-header">
+              <h3>
+                🏘️ Communes ({{ filteredCommunes.length }})
+                @if (selectedProvinceId !== null) {
+                  — Province : {{ provinceMap[selectedProvinceId] }}
+                }
+              </h3>
+              <input
+                type="text"
+                class="search-box"
+                style="min-width:200px;"
+                placeholder="🔍 Rechercher une commune..."
+                [(ngModel)]="geoSearch"
+              />
+            </div>
+            <table class="bio-table">
+              <thead><tr><th>ID</th><th>Commune</th><th>Province</th></tr></thead>
+              <tbody>
+                @for (c of filteredCommunes; track c.idcommune) {
+                  <tr>
+                    <td>{{ c.idcommune }}</td>
+                    <td><strong>{{ c.libellecommune }}</strong></td>
+                    <td>{{ provinceMap[c.idprovince] || c.idprovince }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      }
+    </div>
+  </main>
+</div>
+
+<!-- ================= MODALE DOSSIER CITOYEN COMPLET + ABIS 1:N ================= -->
+@if (selectedUser; as u) {
+  <div class="overlay-backdrop" (click)="closeUserDossier()">
+    <div class="modal-sheet" (click)="$event.stopPropagation()">
+      <div class="modal-sheet-header">
+        <div>
+          <h3 style="margin:0;font-size:18px;">🪪 Dossier Biométrique Unifié #{{ u.id }} — {{ u.nom }} {{ u.prenom }}</h3>
+          <small style="color:#94a3b8;">UIN / NIP : {{ u.uin || 'Non attribué' }} • Origine : {{ u.nomEquipement || 'Terminal' }}</small>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;">
+          <button class="btn btn-amber btn-xs" (click)="runOneToManyOnSelected()" [disabled]="runningOneToMany">
+            {{ runningOneToMany ? '⏳ Recherche 1:N...' : '🔍 Tester 1:N dans ABIS' }}
+          </button>
+          <button class="btn btn-outline btn-xs" style="background:transparent;color:#fff;" (click)="closeUserDossier()">✕ Fermer</button>
+        </div>
+      </div>
+
+      <div class="modal-sheet-body">
+        <!-- Résultats 1:N en direct si lancé -->
+        @if (oneToManyResults; as matches) {
+          <div class="panel-card" style="border-color:#f59e0b;margin-bottom:18px;">
+            <div class="panel-header" style="background:#fffbeb;">
+              <h3 style="color:#92400e;">🔍 Résultat de la recherche biométrique ABIS 1:N (Top Correspondances)</h3>
+            </div>
+            <table class="bio-table">
+              <thead>
+                <tr>
+                  <th>Cible</th>
+                  <th>UIN / NIP</th>
+                  <th>Score SourceAFIS</th>
+                  <th>Score Identité</th>
+                  <th>Modalité</th>
+                  <th>Détail</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (m of matches.slice(0, 5); track m.targetUserId) {
+                  <tr>
+                    <td><strong>#{{ m.targetUserId }} — {{ m.targetNom }} {{ m.targetPrenom }}</strong></td>
+                    <td>{{ m.targetUin || '—' }}</td>
+                    <td>
+                      <span class="badge" [ngClass]="m.scoreAbis >= 40 ? 'badge-red' : 'badge-slate'">
+                        {{ m.scoreAbis }} pts
+                      </span>
+                    </td>
+                    <td>{{ m.scoreIdentite }}%</td>
+                    <td>{{ m.modalite }}</td>
+                    <td>{{ m.raison }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        }
+
+        <div style="display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap;margin-bottom:18px;">
+          @if (buildImageSrc(u.facePhotoBase64); as uPhoto) {
+            <img [src]="uPhoto" style="width:120px;height:120px;border-radius:12px;object-fit:cover;border:3px solid #1e40af;cursor:zoom-in;" alt="Visage" (click)="openZoom(u.nom + ' ' + u.prenom, uPhoto)" />
+          } @else {
+            <div style="width:120px;height:120px;border-radius:12px;background:#e2e8f0;display:flex;align-items:center;justify-content:center;color:#64748b;font-weight:700;">
+              Pas de photo
+            </div>
+          }
+
+          <div class="attr-grid" style="flex:1;">
+            <div class="attr-box"><label>UIN / N° NIP</label><div>{{ u.uin || '—' }}</div></div>
+            <div class="attr-box"><label>Matricule</label><div>{{ u.matricule || '—' }}</div></div>
+            <div class="attr-box"><label>Nom</label><div>{{ u.nom || '—' }}</div></div>
+            <div class="attr-box"><label>Nom de jeune fille</label><div>{{ u.nomJeuneFille || '—' }}</div></div>
+            <div class="attr-box"><label>Prénom(s)</label><div>{{ u.prenom || '—' }}</div></div>
+            <div class="attr-box"><label>Sexe</label><div>{{ u.sexe || '—' }}</div></div>
+            <div class="attr-box"><label>Date de naissance</label><div>{{ u.dateNaissance || '—' }}</div></div>
+            <div class="attr-box"><label>Lieu de naissance</label><div>{{ u.lieuNaissance || (u.idCommuneNaissance ? communeMap[u.idCommuneNaissance] : '—') }}</div></div>
+            <div class="attr-box"><label>Pays</label><div>{{ u.idPays ? (paysMap[u.idPays] || u.idPays) : '—' }}</div></div>
+            <div class="attr-box"><label>Localité / Commune</label><div>{{ u.localite || '—' }}</div></div>
+            <div class="attr-box"><label>Village / Secteur</label><div>{{ u.village || '—' }}</div></div>
+            <div class="attr-box"><label>Localité d'origine</label><div>{{ u.localiteOrigine || '—' }}</div></div>
+          </div>
+        </div>
+
+        <h4 style="margin:18px 0 8px;color:#1e40af;">📋 État Civil, Profession, Documents &amp; Contacts</h4>
+        <div class="attr-grid">
+          <div class="attr-box"><label>Situation matrimoniale</label><div>{{ u.situationMatrimoniale || '—' }}</div></div>
+          <div class="attr-box"><label>Épouses / Enfants</label><div>{{ u.nbEpouses ?? 0 }} ép. / {{ u.nbEnfants ?? 0 }} enf.</div></div>
+          <div class="attr-box"><label>Groupe sanguin</label><div>{{ u.groupeSanguin || '—' }}</div></div>
+          <div class="attr-box"><label>Catégorie / Promotion</label><div>{{ u.categorie || '—' }} {{ u.promotion ? ('(' + u.promotion + ')') : '' }}</div></div>
+          <div class="attr-box"><label>Emploi tenu</label><div>{{ u.emploiTenu || '—' }}</div></div>
+          <div class="attr-box"><label>Niveau d'instruction</label><div>{{ u.niveauInstruction || u.autreNiveauInstruction || '—' }}</div></div>
+          <div class="attr-box"><label>Dernier diplôme</label><div>{{ u.dernierDiplome || '—' }}</div></div>
+          <div class="attr-box"><label>Date CNIB</label><div>{{ u.dateCnib || '—' }}</div></div>
+          <div class="attr-box"><label>Contacts</label><div>{{ u.contact1 || '—' }} {{ u.contact2 ? ('/ ' + u.contact2) : '' }}</div></div>
+          <div class="attr-box"><label>Personne à prévenir 1</label><div>{{ u.personnePrevenir1 || '—' }} {{ u.contactPersonnePrevenir1 || '' }}</div></div>
+          <div class="attr-box"><label>Personne à prévenir 2</label><div>{{ u.personnePrevenir2 || '—' }} {{ u.contactPersonnePrevenir2 || '' }}</div></div>
+          <div class="attr-box"><label>Arme / Châssis</label><div>{{ u.numeroArme || '—' }} / {{ u.numeroChassis || '—' }}</div></div>
+        </div>
+
+        <h4 style="margin:20px 0 8px;color:#1e40af;">🖐️ Empreintes Digitales Normalisées ({{ u.empreintes.length }}) — cliquer pour zoomer</h4>
+        <div class="finger-mini-grid" style="padding:0;">
+          @for (emp of u.empreintes; track emp.id) {
+            <div class="finger-tile" (click)="openZoom(formatFingerLabel(emp.positionDoigt), buildImageSrc(emp.imageBase64))">
+              @if (buildImageSrc(emp.imageBase64); as fSrc) {
+                <img [src]="fSrc" [alt]="formatFingerLabel(emp.positionDoigt)" />
+              } @else {
+                <div style="height:64px;display:flex;align-items:center;justify-content:center;font-size:10px;color:#64748b;">Gabarit ISO</div>
+              }
+              <small>{{ formatFingerLabel(emp.positionDoigt) }}</small>
+              @if (emp.scoreNfiq !== null) {
+                <span class="badge badge-green" style="margin-top:3px;font-size:9.5px;">NFIQ {{ emp.scoreNfiq }}</span>
+              }
+              @if (emp.templateBase64) {
+                <span class="badge badge-blue" style="margin-top:3px;font-size:9.5px;">ISO 19794-2</span>
+              }
+            </div>
+          } @empty {
+            <p style="color:#64748b;font-size:13px;">Aucune empreinte enregistrée sur ce dossier.</p>
+          }
+        </div>
+
+        @if (selectedUserSlaps.length > 0) {
+          <h4 style="margin:20px 0 8px;color:#1e40af;">🖐️ Captures Slaps (4 Doigts / 2 Pouces)</h4>
+          <div class="finger-mini-grid" style="padding:0;">
+            @for (slap of selectedUserSlaps; track slap.key) {
+              <div class="finger-tile" (click)="openZoom(slap.key, slap.uri)">
+                <img [src]="slap.uri" [alt]="slap.key" />
+                <small>{{ slap.key }}</small>
+              </div>
+            }
+          </div>
+        }
+
+        @if (selectedUserStandards.length > 0) {
+          <h4 style="margin:20px 0 8px;color:#1e40af;">📐 Enregistrements Standards ISO 19794 / ANSI INCITS</h4>
+          <div class="attr-grid">
+            @for (std of selectedUserStandards; track std.key) {
+              <div class="attr-box">
+                <label>{{ std.key }}</label>
+                <div>{{ std.bytes }} octets</div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ================= MODALE ÉDITION ================= -->
+@if (editingUser; as ed) {
+  <div class="overlay-backdrop" (click)="editingUser = null">
+    <div class="modal-sheet" style="max-width:520px;" (click)="$event.stopPropagation()">
+      <div class="modal-sheet-header">
+        <h3 style="margin:0;font-size:17px;">✏️ Modifier le dossier #{{ ed.id }}</h3>
+        <button class="btn btn-outline btn-xs" style="background:transparent;color:#fff;" (click)="editingUser = null">✕</button>
+      </div>
+      <div class="modal-sheet-body" style="display:flex;flex-direction:column;gap:12px;">
+        <div>
+          <label style="font-size:12px;font-weight:700;">Nom</label>
+          <input class="search-box" style="width:100%;margin-top:4px;" [(ngModel)]="ed.nom" />
+        </div>
+        <div>
+          <label style="font-size:12px;font-weight:700;">Prénom(s)</label>
+          <input class="search-box" style="width:100%;margin-top:4px;" [(ngModel)]="ed.prenom" />
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div>
+            <label style="font-size:12px;font-weight:700;">Sexe</label>
+            <input class="search-box" style="width:100%;margin-top:4px;min-width:0;" [(ngModel)]="ed.sexe" />
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:700;">Groupe sanguin</label>
+            <input class="search-box" style="width:100%;margin-top:4px;min-width:0;" [(ngModel)]="ed.groupeSanguin" />
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div>
+            <label style="font-size:12px;font-weight:700;">Date de naissance</label>
+            <input class="search-box" style="width:100%;margin-top:4px;min-width:0;" [(ngModel)]="ed.dateNaissance" />
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:700;">Localité / Commune</label>
+            <input class="search-box" style="width:100%;margin-top:4px;min-width:0;" [(ngModel)]="ed.localite" />
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div>
+            <label style="font-size:12px;font-weight:700;">Emploi tenu</label>
+            <input class="search-box" style="width:100%;margin-top:4px;min-width:0;" [(ngModel)]="ed.emploiTenu" />
+          </div>
+          <div>
+            <label style="font-size:12px;font-weight:700;">Contact téléphone</label>
+            <input class="search-box" style="width:100%;margin-top:4px;min-width:0;" [(ngModel)]="ed.contact1" />
+          </div>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:8px;">
+          <button class="btn btn-outline" (click)="editingUser = null">Annuler</button>
+          <button class="btn btn-primary" (click)="saveEditUser()">💾 Enregistrer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ================= MODALE AGENT ================= -->
+@if (selectedAgentModal; as agModal) {
+  <div class="overlay-backdrop" (click)="selectedAgentModal = null">
+    <div class="modal-sheet" style="max-width:740px;" (click)="$event.stopPropagation()">
+      <div class="modal-sheet-header">
+        <h3 style="margin:0;font-size:17px;">👮 Fiche Agent Opérateur #{{ agentAttr('id') }} — {{ agentAttr('nom') }} {{ agentAttr('prenom') }}</h3>
+        <button class="btn btn-outline btn-xs" style="background:transparent;color:#fff;" (click)="selectedAgentModal = null">✕</button>
+      </div>
+      <div class="modal-sheet-body">
+        <div class="attr-grid">
+          <div class="attr-box"><label>ID Utilisateur</label><div>{{ agentAttr('idutilisateur') }}</div></div>
+          <div class="attr-box"><label>Nom</label><div>{{ agentAttr('nom') }}</div></div>
+          <div class="attr-box"><label>Prénom</label><div>{{ agentAttr('prenom') }}</div></div>
+          <div class="attr-box"><label>Rôle</label><div>{{ agentAttr('typeutilisateur') }}</div></div>
+          <div class="attr-box"><label>Login</label><div>{{ agentAttr('loginutilisateur') }}</div></div>
+          <div class="attr-box"><label>Genre</label><div>{{ agentAttr('genreutilisateur') }}</div></div>
+          <div class="attr-box"><label>Contact 1</label><div>{{ agentAttr('contact1utilisateur') }}</div></div>
+          <div class="attr-box"><label>Tentatives échouées</label><div>{{ agentAttr('nbtentativeechoue') }}</div></div>
+        </div>
+
+        <h4 style="margin:18px 0 8px;color:#1e40af;">🖐️ Empreintes de l'Agent ({{ agModal.fingers.length }})</h4>
+        <div class="finger-mini-grid" style="padding:0;">
+          @for (f of agModal.fingers; track f.label) {
+            <div class="finger-tile" (click)="openZoom(f.label, f.uri)">
+              <img [src]="f.uri" [alt]="f.label" />
+              <small>{{ f.label }}</small>
+            </div>
+          } @empty {
+            <p style="color:#64748b;font-size:13px;">Aucune empreinte enregistrée pour cet opérateur.</p>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ================= LIGHTBOX ZOOM BIOMÉTRIQUE ================= -->
+@if (zoomedImage; as zm) {
+  <div class="overlay-backdrop" style="z-index:160;" (click)="zoomedImage = null">
+    <div style="background:#0f172a;padding:18px;border-radius:14px;max-width:600px;text-align:center;color:#fff;" (click)="$event.stopPropagation()">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:20px;">
+        <strong>🔍 {{ zm.title }}</strong>
+        <button class="btn btn-outline btn-xs" (click)="zoomedImage = null">Fermer</button>
+      </div>
+      <img [src]="zm.src" [alt]="zm.title" style="max-width:100%;max-height:72vh;background:#fff;border-radius:8px;padding:8px;" />
+    </div>
+  </div>
+}
+
+<!-- ================= TOAST NOTIFICATION ================= -->
+@if (toastMessage) {
+  <div class="toast-banner">{{ toastMessage }}</div>
+}
